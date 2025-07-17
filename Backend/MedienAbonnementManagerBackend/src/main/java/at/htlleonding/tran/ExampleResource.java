@@ -1,16 +1,25 @@
 package at.htlleonding.tran;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/hello")
+import java.util.List;
+
+@Path("/users")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class ExampleResource {
 
+
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String hello() {
-        return "Hello RESTEasy";
+    public List<User> getAll() {
+        return User.listAll();
+    }
+
+    @POST
+    @Transactional
+    public void addUser(User user) {
+        user.persist();
     }
 }
