@@ -1,0 +1,8 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+###
+
+GET http://localhost:8080/api/movies/550/providers
+Authorization: Bearer <747511fd46d09e598ee1cc0b51b3c16b>
