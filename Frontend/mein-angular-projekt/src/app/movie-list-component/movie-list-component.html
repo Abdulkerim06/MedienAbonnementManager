@@ -1,0 +1,16 @@
+<div class="movie-search">
+  <input #searchBox type="text" placeholder="Filmtitel eingeben..." />
+  <button (click)="searchMovies(searchBox.value)">Suchen</button>
+</div>
+
+<div *ngIf="isLoading">🔄 Filme werden geladen...</div>
+<div *ngIf="errorMessage">{{ errorMessage }}</div>
+
+<ul *ngIf="movies.length > 0">
+  <li *ngFor="let movie of movies">
+    <h3>{{ movie.title }} ({{ movie.release_date | date:'yyyy' }})</h3>
+    <img *ngIf="movie.poster_path" [src]="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt="{{ movie.title }}" />
+    <p>{{ movie.overview }}</p>
+    <p>⭐ {{ movie.vote_average }} / 10 ({{ movie.vote_count }} Stimmen)</p>
+  </li>
+</ul>
