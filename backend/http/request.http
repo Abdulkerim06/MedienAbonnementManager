@@ -3,16 +3,48 @@ GET https://examples.http-client.intellij.net/get
     ?generated-in=IntelliJ IDEA
 
 ###
-
 GET http://localhost:8080/api/movies/550/providers
 Authorization: Bearer <dein_jwt_token>
 
-###
+### Transformers
+GET http://localhost:8080/api/movies/1858/providers
+Authorization: Bearer <dein_jwt_token>
 
+###
 GET http://localhost:8080/api/movies/id/550
 Authorization: Bearer <dein_jwt_token>
 
 ###
-
 GET http://localhost:8080/api/movies/name/transformers
 Authorization: Bearer <dein_jwt_token>
+
+###
+GET http://localhost:8080/api/movies/1858/providers/filtered
+Authorization: Bearer <dein_jwt_token>
+Content-Type: */*
+
+###
+GET http://localhost:8080/api/movies/users
+Content-Type: application/json
+
+###
+POST  http://localhost:8080/api/movies/users/create
+Content-Type: application/json
+
+{
+  "name": "Alice"
+}
+
+###
+
+PUT http://localhost:8080/api/users/5/providers
+Content-Type: application/json
+
+{
+  "toAdd": ["Netflix"],
+  "toRemove": ["Disney+"]
+}
+
+
+
+

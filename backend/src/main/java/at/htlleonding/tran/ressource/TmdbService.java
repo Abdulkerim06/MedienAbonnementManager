@@ -1,14 +1,27 @@
 package at.htlleonding.tran.ressource;
 
+import at.htlleonding.tran.model.ProviderInfo;
+import at.htlleonding.tran.model.UserMovieDb;
+import at.htlleonding.tran.repository.UserMovieDBRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 @ApplicationScoped
 public class TmdbService {
+
+    @Inject
+    UserMovieDBRepository userMovieDBRepository;
 
     @ConfigProperty(name = "tmdb.api.v4.token")
     String tmdbV4Token;
@@ -60,4 +73,108 @@ public class TmdbService {
             return response.body().string();
         }
     }
+    public class ProviderInfo {
+        private String name;
+        private String logoUrl;
+        private boolean ownedByUser; // <-- neu
+
+        public ProviderInfo(String name, String logoUrl) {
+            this.name = name;
+            this.logoUrl = logoUrl;
+        }
+
+        public ProviderInfo(String name, String logoUrl, boolean ownedByUser) {
+            this.name = name;
+            this.logoUrl = logoUrl;
+            this.ownedByUser = ownedByUser;
+        }
+    }
+
+
+
+
+    public List<ProviderInfo> getFilteredProviders(Long movieId, String countryCode) throws Exception {
+        // TMDB API URL
+        String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer " + tmdbV4Token)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("API call failed: " + response);
+            }
+
+            // JSON parsen
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response.body().string());
+
+            JsonNode flatrate = root.path("results").path(countryCode).path("flatrate");
+
+            List<ProviderInfo> providers = new ArrayList<>();
+            if (flatrate.isArray()) {
+                for (JsonNode provider : flatrate) {
+                    providers.add(new ProviderInfo(
+                            provider.path("provider_name").asText(),
+                            "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText()
+                    ));
+                }
+            }
+
+            return providers;
+        }
+    }
+
+
+
+
+
+
+
+    public List<ProviderInfo> getFilteredProvidersAndCheckedForProvidersOfUser(int movieId, String countryCode, Long userId) throws Exception {
+        // TMDB API URL
+        String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer " + tmdbV4Token)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("API call failed: " + response);
+            }
+
+            // JSON parsen
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response.body().string());
+
+            JsonNode flatrate = root.path("results").path(countryCode).path("flatrate");
+
+            // User-Provider holen
+            List<String> userProviders = userMovieDBRepository.findProvidersByUser(userId);
+
+            List<ProviderInfo> providers = new ArrayList<>();
+            if (flatrate.isArray()) {
+                for (JsonNode provider : flatrate) {
+                    String name = provider.path("provider_name").asText();
+                    String logo = "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText();
+
+                    boolean owned = userProviders.contains(name); // Abgleich
+                    providers.add(new ProviderInfo(name, logo, owned));
+                }
+            }
+
+            return providers;
+        }
+    }
+
+
+
 }
