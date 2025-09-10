@@ -37,12 +37,22 @@ Content-Type: application/json
 
 ###
 
-PUT http://localhost:8080/api/users/5/providers
+PUT http://localhost:8080/api/movies/users/1/providers
 Content-Type: application/json
 
 {
-  "toAdd": ["Netflix"],
+  "toAdd": ["Netflix", "Amazon", "amazon"],
   "toRemove": ["Disney+"]
+}
+
+###
+
+PUT http://localhost:8080/api/movies/users/1/providers
+Content-Type: application/json
+
+{
+"toAdd": ["Disney+"],
+"toRemove": ["Netflix"]
 }
 
 

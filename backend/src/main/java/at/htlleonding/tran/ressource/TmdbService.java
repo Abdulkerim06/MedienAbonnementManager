@@ -1,5 +1,6 @@
 package at.htlleonding.tran.ressource;
 
+import at.htlleonding.tran.dto.ProviderInfoDTO;
 import at.htlleonding.tran.model.ProviderInfo;
 import at.htlleonding.tran.model.UserMovieDb;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
@@ -73,27 +74,11 @@ public class TmdbService {
             return response.body().string();
         }
     }
-    public class ProviderInfo {
-        private String name;
-        private String logoUrl;
-        private boolean ownedByUser; // <-- neu
-
-        public ProviderInfo(String name, String logoUrl) {
-            this.name = name;
-            this.logoUrl = logoUrl;
-        }
-
-        public ProviderInfo(String name, String logoUrl, boolean ownedByUser) {
-            this.name = name;
-            this.logoUrl = logoUrl;
-            this.ownedByUser = ownedByUser;
-        }
-    }
 
 
 
 
-    public List<ProviderInfo> getFilteredProviders(Long movieId, String countryCode) throws Exception {
+    public List<ProviderInfoDTO> getFilteredProviders(Long movieId, String countryCode) throws Exception {
         // TMDB API URL
         String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
 
@@ -115,16 +100,15 @@ public class TmdbService {
 
             JsonNode flatrate = root.path("results").path(countryCode).path("flatrate");
 
-            List<ProviderInfo> providers = new ArrayList<>();
+            List<ProviderInfoDTO> providers = new ArrayList<>();
             if (flatrate.isArray()) {
                 for (JsonNode provider : flatrate) {
-                    providers.add(new ProviderInfo(
+                    providers.add(new ProviderInfoDTO(
                             provider.path("provider_name").asText(),
                             "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText()
                     ));
                 }
             }
-
             return providers;
         }
     }
@@ -135,7 +119,7 @@ public class TmdbService {
 
 
 
-    public List<ProviderInfo> getFilteredProvidersAndCheckedForProvidersOfUser(int movieId, String countryCode, Long userId) throws Exception {
+    public List<ProviderInfoDTO> getFilteredProvidersAndCheckedForProvidersOfUser(int movieId, String countryCode, Long userId) throws Exception {
         // TMDB API URL
         String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
 
@@ -158,16 +142,16 @@ public class TmdbService {
             JsonNode flatrate = root.path("results").path(countryCode).path("flatrate");
 
             // User-Provider holen
-            List<String> userProviders = userMovieDBRepository.findProvidersByUser(userId);
+            Set<String> userProviders = userMovieDBRepository.findProvidersByUser(userId);
 
-            List<ProviderInfo> providers = new ArrayList<>();
+            List<ProviderInfoDTO> providers = new ArrayList<>();
             if (flatrate.isArray()) {
                 for (JsonNode provider : flatrate) {
                     String name = provider.path("provider_name").asText();
                     String logo = "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText();
 
                     boolean owned = userProviders.contains(name); // Abgleich
-                    providers.add(new ProviderInfo(name, logo, owned));
+                    providers.add(new ProviderInfoDTO(name, logo, owned));
                 }
             }
 

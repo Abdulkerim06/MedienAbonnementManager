@@ -5,12 +5,16 @@ import at.htlleonding.tran.dto.ProviderUpdateRequest;
 import at.htlleonding.tran.model.UserMovieDb;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
 import at.htlleonding.tran.ressource.TmdbService;
+import at.htlleonding.tran.dto.ProviderInfoDTO;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+
 import java.util.List;
+import java.util.Set;
 
 @Path("/api/movies")
 @Produces(MediaType.APPLICATION_JSON)
@@ -68,7 +72,7 @@ public class MovieResource {
             @PathParam("id") Long movieId,
             @QueryParam("country") @DefaultValue("DE") String countryCode) {
         try {
-            List<TmdbService.ProviderInfo> providers = tmdbService.getFilteredProviders(movieId, countryCode);
+            List<ProviderInfoDTO> providers = tmdbService.getFilteredProviders(movieId, countryCode);
             return Response.ok(providers).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_GATEWAY)
@@ -77,6 +81,7 @@ public class MovieResource {
         }
     }
 
+
     @GET
     @Path("/{id}/{userid}/providers/filtered/ByUserProvider")
     public Response getFilteredProvidersByUserProvider(
@@ -84,7 +89,7 @@ public class MovieResource {
             @PathParam("userid") Long userId,
             @QueryParam("country") @DefaultValue("DE") String countryCode) {
         try {
-            List<TmdbService.ProviderInfo> providers = tmdbService.getFilteredProvidersAndCheckedForProvidersOfUser(movieId, countryCode,userId);
+            List<ProviderInfoDTO> providers = tmdbService.getFilteredProvidersAndCheckedForProvidersOfUser(movieId, countryCode,userId);
             return Response.ok(providers).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_GATEWAY)
@@ -96,7 +101,7 @@ public class MovieResource {
     @GET
     @Path("/users")
     public Response getMovieUsers() {
-        List<UserMovieDb> users = userMovieDBRepository.findAll();
+        Set<UserMovieDb> users = userMovieDBRepository.findAll();
 
         return Response.status(Response.Status.OK).entity(users).build();
     }
@@ -126,19 +131,24 @@ public class MovieResource {
     public Response updateUserProviders(
             @PathParam("id") Long userId,
             ProviderUpdateRequest request
-    ) {
+    ){
         try {
+            System.out.println("Received request for user ID: " + userId);
+            System.out.println("toAdd: " + request.getToAdd());
+            System.out.println("toRemove: " + request.getToRemove());
+
             userMovieDBRepository.updateProviders(userId, request.getToAdd(), request.getToRemove());
             return Response.ok().build();
+        } catch (EntityNotFoundException e) {
+            System.out.println("User not found: " + userId);
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}")
+                    .build();
         } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}")
                     .build();
         }
     }
-
-
-
-
-
 }

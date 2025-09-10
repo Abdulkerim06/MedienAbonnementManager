@@ -20,7 +20,9 @@ public class UserMovieDb {
     private String password;
 
     @ElementCollection
-    private List<String> providers = new ArrayList<>();
+    @CollectionTable(name = "user_providers", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "provider_name")
+    private Set<String> providers = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -54,11 +56,11 @@ public class UserMovieDb {
         this.password = password;
     }
 
-    public List<String> getProviders() {
+    public Set<String> getProviders() {
         return providers;
     }
 
-    public void setProviders(List<String> providers) {
+    public void setProviders(Set<String> providers) {
         this.providers = providers;
     }
 }
