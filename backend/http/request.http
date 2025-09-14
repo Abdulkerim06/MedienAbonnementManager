@@ -19,6 +19,10 @@ GET http://localhost:8080/api/movies/name/transformers
 Authorization: Bearer <dein_jwt_token>
 
 ###
+GET http://localhost:8080/api/movies/name/Thor
+Authorization: Bearer <dein_jwt_token>
+
+###
 GET http://localhost:8080/api/movies/1858/providers/filtered
 Authorization: Bearer <dein_jwt_token>
 Content-Type: */*
