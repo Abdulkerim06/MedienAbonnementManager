@@ -50,7 +50,7 @@ public class UserMovieDBRepository {
 
     public Set<String> findProvidersByUser(Long userId) {
         UserMovieDb user = em.find(UserMovieDb.class, userId);
-        if (user != null) {
+        if (user == null) {
             throw new IllegalArgumentException("User with id " + userId + " not found");
         }
         return user.getProviders();

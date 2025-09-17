@@ -45,7 +45,7 @@ PUT http://localhost:8080/api/movies/users/1/providers
 Content-Type: application/json
 
 {
-  "toAdd": ["Netflix", "Amazon", "amazon"],
+  "toAdd": ["Netflix", "Amazon", "amazon", "Paramount Plus"],
   "toRemove": ["Disney+"]
 }
 
@@ -58,6 +58,11 @@ Content-Type: application/json
 "toAdd": ["Disney+"],
 "toRemove": ["Netflix"]
 }
+
+### by user filtered
+
+GET http://localhost:8080/api/movies/1858/1/providers/filtered/ByUserProvider
+Content-Type: application/json
 
 
 

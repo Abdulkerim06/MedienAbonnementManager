@@ -114,11 +114,6 @@ public class TmdbService {
     }
 
 
-
-
-
-
-
     public List<ProviderInfoDTO> getFilteredProvidersAndCheckedForProvidersOfUser(int movieId, String countryCode, Long userId) throws Exception {
         // TMDB API URL
         String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
@@ -151,7 +146,9 @@ public class TmdbService {
                     String logo = "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText();
 
                     boolean owned = userProviders.contains(name); // Abgleich
-                    providers.add(new ProviderInfoDTO(name, logo, owned));
+                    if (owned) {
+                        providers.add(new ProviderInfoDTO());
+                    }
                 }
             }
 
