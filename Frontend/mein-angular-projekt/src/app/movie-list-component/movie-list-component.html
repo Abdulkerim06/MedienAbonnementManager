@@ -1,6 +1,10 @@
 <div class="movie-search">
-  <input #searchBox type="text" placeholder="Filmtitel eingeben..." />
+  <input #searchBox type="text" placeholder="Filmtitel eingeben..."
+         (keyup.enter)="searchMovies(searchBox.value)" />
   <button (click)="searchMovies(searchBox.value)">Suchen</button>
+
+
+
 </div>
 
 <div *ngIf="isLoading">🔄 Filme werden geladen...</div>
