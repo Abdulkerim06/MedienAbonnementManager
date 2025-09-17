@@ -147,7 +147,8 @@ public class TmdbService {
 
                     boolean owned = userProviders.contains(name); // Abgleich
                     if (owned) {
-                        providers.add(new ProviderInfoDTO());
+                        providers.add(new ProviderInfoDTO(provider.path("provider_name").asText(),
+                                "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText(),true));
                     }
                 }
             }
