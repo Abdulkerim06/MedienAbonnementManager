@@ -1,0 +1,23 @@
+<nav class="navbar">
+  <div class="logo">
+    <a routerLink="/">🎬 MovieApp</a>
+  </div>
+
+  <ul class="nav-links">
+    <li><a routerLink="/movies">Movies</a></li>
+    <li><a routerLink="/about">Über uns</a></li>
+    <li *ngIf="authService.isLoggedIn$ | async"><a routerLink="/favorites">Meine Filme</a></li>
+  </ul>
+
+  <div class="auth-section">
+    <ng-container *ngIf="!(authService.isLoggedIn$ | async); else loggedIn">
+      <a routerLink="/login">Login</a>
+      <a routerLink="/register">Register</a>
+    </ng-container>
+
+    <ng-template #loggedIn>
+      <span>Hi, {{ authService.username$ | async }}</span>
+      <a (click)="authService.logout()">Logout</a>
+    </ng-template>
+  </div>
+</nav>

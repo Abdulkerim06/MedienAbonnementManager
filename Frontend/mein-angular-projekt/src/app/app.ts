@@ -2,11 +2,14 @@ import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MainPage } from './main-page/main-page';
 import { MovieListComponent } from './movie-list-component/movie-list-component';
+import {Login} from './login/login';
+import {Register} from './register/register';
+import {NavbarComponent} from './navbar-component/navbar-component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [MovieListComponent],
+  imports: [RouterOutlet, NavbarComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })

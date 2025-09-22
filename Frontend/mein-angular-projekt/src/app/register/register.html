@@ -1,0 +1,15 @@
+<h2>Registrieren</h2>
+<form (ngSubmit)="register()">
+  <label>Name:</label>
+  <input [(ngModel)]="name" name="name" required>
+  <br>
+  <label>Email:</label>
+  <input [(ngModel)]="email" name="email">
+  <br>
+  <label>Passwort:</label>
+  <input type="password" [(ngModel)]="password" name="password">
+  <br>
+  <button type="submit">Registrieren</button>
+</form>
+
+<p *ngIf="message">{{ message }}</p>
