@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { MainPage } from './main-page/main-page';
 import { MovieListComponent } from './movie-list-component/movie-list-component';
 import {Login} from './login/login';
-import {Register} from './register/register';
+import {RegisterComponent} from './register/register';
 import {NavbarComponent} from './navbar-component/navbar-component';
 
 @Component({
