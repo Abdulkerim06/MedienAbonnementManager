@@ -1,5 +1,5 @@
 // src/app/navbar/navbar.component.ts
-import {Component, Input} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth/auth-service';
@@ -9,7 +9,8 @@ import { AuthService } from '../auth/auth-service';
   standalone: true,
   imports: [RouterModule, CommonModule],
   templateUrl: './navbar-component.html',
-  styleUrls: ['./navbar-component.css']
+  styleUrls: ['./navbar-component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
   constructor(public authService: AuthService) {}

@@ -1,5 +1,5 @@
 // src/app/components/movie-list/movie-list.component.ts
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';  // <-- wichtig für *ngIf, *ngFor, Pipes
 import { MovieService } from '../movie-service';
 import { Film } from '../film';
@@ -11,7 +11,8 @@ import {FormsModule} from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './movie-list-component.html',
-  styleUrls: ['./movie-list-component.css']
+  styleUrls: ['./movie-list-component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class MovieListComponent implements OnInit {

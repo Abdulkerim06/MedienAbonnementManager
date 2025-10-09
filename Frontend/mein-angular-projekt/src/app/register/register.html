@@ -1,15 +1,23 @@
-<h2>Registrieren</h2>
-<form (ngSubmit)="register()">
-  <label>Name:</label>
-  <input [(ngModel)]="name" name="name" required>
-  <br>
-  <label>Email:</label>
-  <input [(ngModel)]="email" name="email">
-  <br>
-  <label>Passwort:</label>
-  <input type="password" [(ngModel)]="password" name="password">
-  <br>
-  <button type="submit">Registrieren</button>
-</form>
+<div class="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md mx-auto animate-fade-in">
+  <h1 class="text-3xl font-bold text-cyan-400 text-center">Registrieren</h1>
+  <p class="mt-4 text-gray-300 text-center">Hier wäre das Registrierungs-Formular.</p>
+</div>
 
-<p *ngIf="message">{{ message }}</p>
+
+
+
+<!--<h2>Registrieren</h2>-->
+<!--<form (ngSubmit)="register()">-->
+<!--  <label>Name:</label>-->
+<!--  <input [(ngModel)]="name" name="name" required>-->
+<!--  <br>-->
+<!--  <label>Email:</label>-->
+<!--  <input [(ngModel)]="email" name="email">-->
+<!--  <br>-->
+<!--  <label>Passwort:</label>-->
+<!--  <input type="password" [(ngModel)]="password" name="password">-->
+<!--  <br>-->
+<!--  <button type="submit">Registrieren</button>-->
+<!--</form>-->
+
+<!--<p *ngIf="message">{{ message }}</p>-->

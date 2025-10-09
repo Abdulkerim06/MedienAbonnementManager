@@ -1,20 +1,31 @@
-<div class="movie-search">
-  <input #searchBox type="text" placeholder="Filmtitel eingeben..."
-         (keyup.enter)="searchMovies(searchBox.value)" />
-  <button (click)="searchMovies(searchBox.value)">Suchen</button>
+<div class="animate-fade-in">
+  <div class="movie-search mb-8 flex flex-col sm:flex-row gap-2">
+    <input #searchBox type="text" placeholder="Filmtitel eingeben..."
+           (keyup.enter)="searchMovies(searchBox.value)"
+           class="flex-grow bg-gray-800 border-2 border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300" />
+    <button (click)="searchMovies(searchBox.value)"
+            class="bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-cyan-700 transition-transform duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900">
+      Suchen
+    </button>
+  </div>
 
+  @if (isLoading) {
+    <div class="text-center p-8 text-lg">🔄 Filme werden geladen...</div>
+  }
+  @if (errorMessage) {
+    <div class="text-center p-8 text-red-400 bg-red-900/50 rounded-lg">{{ errorMessage }}</div>
+  }
 
-
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+    @for (movie of movies; track movie.title) {
+      <div class="bg-gray-800 rounded-xl overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+        <img *ngIf="movie.poster_path" [src]="'https://image.tmdb.org/t/p/w500' + movie.poster_path" [alt]="movie.title" class="w-full h-auto object-cover" />
+        <div class="p-4">
+          <h3 class="text-lg font-bold text-white">{{ movie.title }} ({{ movie.release_date | date:'yyyy' }})</h3>
+          <p class="text-sm text-gray-400 mt-2 h-20 overflow-hidden text-ellipsis">{{ movie.overview }}</p>
+          <p class="mt-4 font-bold text-lg text-yellow-400">⭐ {{ movie.vote_average.toFixed(1) }} / 10 <span class="text-xs text-gray-500">({{ movie.vote_count }} Stimmen)</span></p>
+        </div>
+      </div>
+    }
+  </div>
 </div>
-
-<div *ngIf="isLoading">🔄 Filme werden geladen...</div>
-<div *ngIf="errorMessage">{{ errorMessage }}</div>
-
-<ul *ngIf="movies.length > 0">
-  <li *ngFor="let movie of movies">
-    <h3>{{ movie.title }} ({{ movie.release_date | date:'yyyy' }})</h3>
-    <img *ngIf="movie.poster_path" [src]="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt="{{ movie.title }}" />
-    <p>{{ movie.overview }}</p>
-    <p>⭐ {{ movie.vote_average }} / 10 ({{ movie.vote_count }} Stimmen)</p>
-  </li>
-</ul>

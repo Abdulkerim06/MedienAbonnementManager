@@ -1,5 +1,5 @@
 // src/app/auth/register.component.ts
-import { Component } from '@angular/core';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth-service';
 import { CommonModule } from '@angular/common';
@@ -9,7 +9,9 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-register',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `
+  templateUrl: './register.html',
+  styleUrls: ['./register.css'],
+  /*template: `
     <h2>Registrieren</h2>
     <form (ngSubmit)="onRegister()">
       <label>Name:
@@ -29,10 +31,14 @@ import { FormsModule } from '@angular/forms';
 
     <p *ngIf="success" style="color:green">{{ success }}</p>
     <p *ngIf="error" style="color:red">{{ error }}</p>
-  `
+  `*/
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {
-  name = '';
+
+
+
+  /*name = '';
   email = '';
   password = '';
   success = '';
@@ -48,5 +54,5 @@ export class RegisterComponent {
       },
       error: () => this.error = 'Registrierung fehlgeschlagen'
     });
-  }
+  }*/
 }
