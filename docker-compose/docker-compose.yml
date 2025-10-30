@@ -11,6 +11,23 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=abomanagment
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.2
+    container_name: keycloak
+    command: start-dev
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/abomanagment
+      - KC_DB_USERNAME=myuser
+      - KC_DB_PASSWORD=mypassword
+      - KC_HOSTNAME=localhost
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
 volumes:
   postgres:
 
