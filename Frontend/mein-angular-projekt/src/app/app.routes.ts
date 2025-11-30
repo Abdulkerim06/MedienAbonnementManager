@@ -5,7 +5,7 @@ import {MovieListComponent} from './movie-list-component/movie-list-component';
 import {AboutComponent} from './about-component/about-component';
 import {MainPage} from './main-page/main-page';
 import {FavoritesComponent} from './favorites-component/favorites-component';
-import {authGuard} from './auth/auth.guard';
+import {AuthGuard} from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', component:  MainPage},
@@ -13,6 +13,6 @@ export const routes: Routes = [
   { path: 'about', component: AboutComponent },
   { path: 'login', component: Login },
   { path: 'register', component: RegisterComponent },
-  { path: 'favorites', component: FavoritesComponent, canActivate: [authGuard] },
+  { path: 'favorites', component: FavoritesComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '' } // Redirect any unknown paths to home
 ];

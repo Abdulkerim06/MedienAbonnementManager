@@ -1,14 +1,8 @@
 import { KeycloakService } from 'keycloak-angular';
 
-export function initializeKeycloak(keycloak: KeycloakService) {
-  return async () => {
-    // Prüfen, ob wir im Browser sind
-    if (typeof window === 'undefined') {
-      console.warn('Keycloak init skipped (Server-Side Rendering)');
-      return;
-    }
-
-    await keycloak.init({
+export function initializeKeycloak(keycloak: KeycloakService): () => Promise<boolean> {
+  return () =>
+    keycloak.init({
       config: {
         url: 'http://localhost:8081', // Keycloak URL
         realm: 'angular-realm',
@@ -18,7 +12,9 @@ export function initializeKeycloak(keycloak: KeycloakService) {
         onLoad: 'login-required',
         checkLoginIframe: false,
       },
-      loadUserProfileAtStartUp: true,
+      // WICHTIG: Diese Parameter herausnehmen:
+       enableBearerInterceptor: true,
+       bearerPrefix: 'Bearer ',
+       bearerExcludedUrls: ['/assets', '/public']
     });
-  };
 }

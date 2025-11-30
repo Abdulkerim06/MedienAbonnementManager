@@ -5,11 +5,14 @@ import { MovieListComponent } from './movie-list-component/movie-list-component'
 import {Login} from './login/login';
 import {RegisterComponent} from './register/register';
 import {NavbarComponent} from './navbar-component/navbar-component';
+import {KeycloakAngularModule} from 'keycloak-angular';
+import { HttpClientModule } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent],
+  imports: [RouterOutlet, NavbarComponent, KeycloakAngularModule, HttpClientModule],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

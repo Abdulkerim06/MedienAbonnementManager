@@ -30,5 +30,12 @@
     {
       "path": "./tsconfig.spec.json"
     }
+  ],
+  "include": [
+    "src/main.ts",
+    "src/main.server.ts",
+    "src/server.ts",
+    "src/**/*.ts"
   ]
+
 }
