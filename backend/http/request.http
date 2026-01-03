@@ -69,5 +69,13 @@ Content-Type: application/json
 
 GET http://localhost:8080/security
 
+###user
+
+GET http://localhost:8080/api/users/test
+Content-Type: */*
+
+### DEBUG
+
+GET /http://localhost:8080/api/debug
 
 

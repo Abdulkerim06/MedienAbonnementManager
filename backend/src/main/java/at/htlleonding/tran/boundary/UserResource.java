@@ -4,10 +4,13 @@ import at.htlleonding.tran.dto.ProviderUpdateRequest;
 import at.htlleonding.tran.model.UserMovieDb;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.jwt.JsonWebToken;
+
 
 @Path("/api/users")
 @Produces(MediaType.APPLICATION_JSON)
@@ -16,6 +19,18 @@ public class UserResource {
 
     @Inject
     UserMovieDBRepository userRepo;
+
+    @Inject
+    JsonWebToken jwt; // Quarkus füllt dies automatisch aus dem Bearer Token
+
+    @GET
+    @RolesAllowed("user") // Nur Zugriff, wenn der Token die Rolle 'user' hat
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("test")
+    public String hello() {
+        // Du kannst Infos aus dem Token auslesen (z.B. User ID oder Name)
+        return "Hallo " + jwt.getName() + ", dein Token ist gültig!";
+    }
 
     @PermitAll
     @GET
