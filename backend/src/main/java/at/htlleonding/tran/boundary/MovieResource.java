@@ -6,6 +6,7 @@ import at.htlleonding.tran.model.UserMovieDb;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
 import at.htlleonding.tran.ressource.TmdbService;
 import at.htlleonding.tran.dto.ProviderInfoDTO;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.*;
@@ -26,6 +27,7 @@ public class MovieResource {
     @Inject
     UserMovieDBRepository userMovieDBRepository;
 
+    @PermitAll
     @GET
     @Path("/id/{id}")
     public Response getMovieById(@PathParam("id") int movieId){
@@ -39,6 +41,7 @@ public class MovieResource {
         }
     }
 
+    @PermitAll
     @GET
     @Path("/name/{name}")
     public Response getMovieById(@PathParam("name") String movieName){
@@ -94,60 +97,6 @@ public class MovieResource {
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_GATEWAY)
                     .entity("{\"error\": \"" + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
-
-    @GET
-    @Path("/users")
-    public Response getMovieUsers() {
-        Set<UserMovieDb> users = userMovieDBRepository.findAll();
-
-        return Response.status(Response.Status.OK).entity(users).build();
-    }
-
-    @POST
-    @Path("/users/create")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response addUser(UserMovieDb userMovieDb){
-        try {
-            this.userMovieDBRepository.save(userMovieDb);
-        }catch (Exception ex) {
-            throw new WebApplicationException(
-                    Response.status(Response.Status.BAD_REQUEST)
-                            .entity(String.format("{\"message\": \"%s\"}",ex.getMessage()))
-                            .build()
-            );
-        }
-
-        return Response.status(Response.Status.CREATED).entity(userMovieDb).build();
-    }
-
-    @PUT
-    @Path("/users/{id}/providers")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUserProviders(
-            @PathParam("id") Long userId,
-            ProviderUpdateRequest request
-    ){
-        try {
-            System.out.println("Received request for user ID: " + userId);
-            System.out.println("toAdd: " + request.getToAdd());
-            System.out.println("toRemove: " + request.getToRemove());
-
-            userMovieDBRepository.updateProviders(userId, request.getToAdd(), request.getToRemove());
-            return Response.ok().build();
-        } catch (EntityNotFoundException e) {
-            System.out.println("User not found: " + userId);
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\":\"" + e.getMessage() + "\"}")
-                    .build();
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\":\"" + e.getMessage() + "\"}")
                     .build();
         }
     }

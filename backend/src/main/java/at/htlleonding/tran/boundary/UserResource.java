@@ -1,0 +1,68 @@
+package at.htlleonding.tran.boundary;
+
+import at.htlleonding.tran.dto.ProviderUpdateRequest;
+import at.htlleonding.tran.model.UserMovieDb;
+import at.htlleonding.tran.repository.UserMovieDBRepository;
+import jakarta.annotation.security.PermitAll;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
+
+@Path("/api/users")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class UserResource {
+
+    @Inject
+    UserMovieDBRepository userRepo;
+
+    @PermitAll
+    @GET
+    public Response getMovieUsers() {
+        return Response.ok(userRepo.findAll()).build();
+    }
+
+    @PermitAll
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addUser(UserMovieDb user) {
+        try {
+            this.userRepo.save(user);
+        }catch (Exception ex) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.BAD_REQUEST)
+                            .entity(String.format("{\"message\": \"%s\"}",ex.getMessage()))
+                            .build()
+            );
+        }
+        return Response.status(Response.Status.CREATED).entity(user).build();
+    }
+
+    @PUT
+    @Path("/{id}/providers")
+    public Response updateUserProviders(
+            @PathParam("id") Long userId,
+            ProviderUpdateRequest request
+    ){
+        try {
+            System.out.println("Received request for user ID: " + userId);
+            System.out.println("toAdd: " + request.getToAdd());
+            System.out.println("toRemove: " + request.getToRemove());
+
+            userRepo.updateProviders(userId, request.getToAdd(), request.getToRemove());
+            return Response.ok().build();
+        } catch (EntityNotFoundException e) {
+            System.out.println("User not found: " + userId);
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}")
+                    .build();
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+}
