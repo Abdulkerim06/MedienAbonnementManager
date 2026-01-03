@@ -1,7 +1,7 @@
 // login.component.ts
 import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../auth/auth-service';
+import { AuthService } from '../../auth/auth-service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 

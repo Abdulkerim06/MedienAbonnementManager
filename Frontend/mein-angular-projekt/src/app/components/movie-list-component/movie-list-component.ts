@@ -1,8 +1,8 @@
 // src/app/components/movie-list/movie-list.component.ts
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';  // <-- wichtig für *ngIf, *ngFor, Pipes
-import { MovieService } from '../movie-service';
-import { Film } from '../film';
+import { MovieService } from '../../services/movie-service';
+import { Film } from '../../interfaces/film';
 import {NgIf} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 

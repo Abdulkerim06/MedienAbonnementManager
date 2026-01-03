@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, Component, signal} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { MainPage } from './main-page/main-page';
-import { MovieListComponent } from './movie-list-component/movie-list-component';
-import {Login} from './login/login';
-import {RegisterComponent} from './register/register';
-import {NavbarComponent} from './navbar-component/navbar-component';
+import { MainPage } from './components/main-page/main-page';
+import { MovieListComponent } from './components/movie-list-component/movie-list-component';
+import {Login} from './components/login/login';
+import {RegisterComponent} from './components/register/register';
+import {NavbarComponent} from './components/navbar-component/navbar-component';
 import {KeycloakAngularModule} from 'keycloak-angular';
 import { HttpClientModule } from '@angular/common/http';
 

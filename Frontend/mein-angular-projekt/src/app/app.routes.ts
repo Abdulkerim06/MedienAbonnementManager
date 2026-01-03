@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { RegisterComponent } from './register/register';
-import { Login } from './login/login';
-import {MovieListComponent} from './movie-list-component/movie-list-component';
-import {AboutComponent} from './about-component/about-component';
-import {MainPage} from './main-page/main-page';
-import {FavoritesComponent} from './favorites-component/favorites-component';
+import { RegisterComponent } from './components/register/register';
+import { Login } from './components/login/login';
+import {MovieListComponent} from './components/movie-list-component/movie-list-component';
+import {AboutComponent} from './components/about-component/about-component';
+import {MainPage} from './components/main-page/main-page';
+import {FavoritesComponent} from './components/favorites-component/favorites-component';
 import {AuthGuard} from './auth/auth.guard';
 
 export const routes: Routes = [

@@ -2,8 +2,8 @@
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../auth/auth-service';
-import {KeycloakOperationService} from '../services/keycloak.service';
+import { AuthService } from '../../auth/auth-service';
+import {KeycloakOperationService} from '../../services/keycloak.service';
 
 @Component({
   selector: 'app-navbar-component',
