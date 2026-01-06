@@ -11,21 +11,11 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 @Path("/api/debug")
 public class DebugResource {
 
-    @Inject
-    JsonWebToken jwt; // Quarkus füllt dies automatisch aus dem Bearer Token
-
     @GET
     @Path("/me")
     @Produces(MediaType.APPLICATION_JSON)
     // @RolesAllowed("user") // Optional: Später einkommentieren, um Rollen zu prüfen
-    public Response checkToken() {
-        if (jwt.getRawToken() == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Kein Token gefunden!").build();
-        }
-
-        // Gibt dir den Usernamen und die Ablaufzeit zurück
-        return Response.ok(String.format("Token ist da! User: %s, Expires: %d",
-                jwt.getName(),
-                jwt.getExpirationTime())).build();
+    public String checkToken() {
+        return "test successfull";
     }
 }
