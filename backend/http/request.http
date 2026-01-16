@@ -23,10 +23,15 @@ GET http://localhost:8080/api/movies/name/Thor
 Authorization: Bearer <dein_jwt_token>
 
 ###
-GET http://localhost:8080/api/movies/1858/providers/filtered
-Authorization: Bearer <dein_jwt_token>
-Content-Type: */*
-0
+#GET http://localhost:8080/api/movies/1858/providers/filtered
+#Authorization: Bearer {{$auth.token("")}}
+#Content-Type: */*
+
+###
+
+GET http://localhost:8080/api/movies/trending/day
+Content-Type: application/json
+
 ###
 GET http://localhost:8080/api/users
 Content-Type: application/json

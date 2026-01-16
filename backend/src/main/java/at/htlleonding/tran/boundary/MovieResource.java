@@ -2,6 +2,7 @@ package at.htlleonding.tran.boundary;
 
 import at.htlleonding.tran.dto.ProviderUpdateRequest;
 
+import at.htlleonding.tran.dto.TrendingMovieDTO;
 import at.htlleonding.tran.model.UserMovieDb;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
 import at.htlleonding.tran.ressource.TmdbService;
@@ -100,4 +101,21 @@ public class MovieResource {
                     .build();
         }
     }
+
+    @GET
+    @Path("/trending/{timeWindow}")
+    public Response getTrendingMovie(
+            @PathParam("timeWindow") String timeWindow
+    ){
+        try {
+            List<TrendingMovieDTO> jsonResponse = tmdbService.getTrendingMovies(timeWindow);
+            return Response.ok(jsonResponse).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
+
 }

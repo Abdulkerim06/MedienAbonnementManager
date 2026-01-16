@@ -1,8 +1,7 @@
 package at.htlleonding.tran.ressource;
 
 import at.htlleonding.tran.dto.ProviderInfoDTO;
-import at.htlleonding.tran.model.ProviderInfo;
-import at.htlleonding.tran.model.UserMovieDb;
+import at.htlleonding.tran.dto.TrendingMovieDTO;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +13,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -148,7 +148,7 @@ public class TmdbService {
                     boolean owned = userProviders.contains(name); // Abgleich
                     if (owned) {
                         providers.add(new ProviderInfoDTO(provider.path("provider_name").asText(),
-                                "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText(),true));
+                                logo,true));
                     }
                 }
             }
@@ -156,6 +156,65 @@ public class TmdbService {
             return providers;
         }
     }
+
+    public List<TrendingMovieDTO> getTrendingMovies(String timewindow){
+        String url = "https://api.themoviedb.org/3/trending/movie/" + timewindow;
+
+        List<TrendingMovieDTO> trendingMoviesDto = new ArrayList<>();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer " + tmdbV4Token)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("API call failed: " + response);
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response.body().string());
+
+            JsonNode results = root.path("results");
+
+            if (results.isArray()) {
+                for (JsonNode movie : results) {
+                    String poster = "https://image.tmdb.org/t/p/w92" + movie.path("poster_path").asText(null);
+
+                    TrendingMovieDTO dto = new TrendingMovieDTO(
+                            movie.path("id").asLong(),
+                            movie.path("title").asText(),
+                            poster,
+                            movie.path("overview").asText(),
+                            movie.path("popularity").asDouble(),
+                            LocalDate.parse(movie.path("release_date").asText()),
+                            movie.path("vote_average").asDouble(),
+                            movie.path("vote_count").asInt()
+                    );
+                    trendingMoviesDto.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return trendingMoviesDto;
+    }
+
+//        public String getTrendingMovie(String time_window) throws Exception {
+//            Request request = new Request.Builder()
+//                    .url(" https://api.themoviedb.org/3/trending/movie/" + time_window)
+//                    .get()
+//                    .addHeader("accept", "application/json")
+//                    .addHeader("Authorization", "Bearer " + tmdbV4Token)
+//                    .build();
+//            try (Response response = client.newCall(request).execute()) {
+//                if (!response.isSuccessful()) {
+//                    throw new RuntimeException("API call failed: " + response);
+//                }
+//                return response.body().string();
+//            }
+//        }
 
 
 
