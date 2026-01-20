@@ -14,4 +14,11 @@ export class MovieService {
   getMoviesByName(name: string): Observable<MovieResponse> {
     return this.http.get<MovieResponse>(`${this.apiUrl}/name/${name}`);
   }
+
+  // 🎬 Trending Filme
+  getTrendingMovies(timeWindow: 'day' | 'week' = 'week'): Observable<MovieResponse> {
+    return this.http.get<MovieResponse>(
+      `${this.apiUrl}/trending/${timeWindow}`
+    );
+  }
 }

@@ -1,3 +1,18 @@
+<div class="flex gap-4 mb-6">
+  <button
+    (click)="loadTrendingMovies('day')"
+    class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-cyan-600">
+    Heute
+  </button>
+
+  <button
+    (click)="loadTrendingMovies('week')"
+    class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-cyan-600">
+    Diese Woche
+  </button>
+</div>
+
+
 <div class="animate-fade-in">
   <div class="movie-search mb-8 flex flex-col sm:flex-row gap-2">
     <input #searchBox type="text" placeholder="Filmtitel eingeben..."

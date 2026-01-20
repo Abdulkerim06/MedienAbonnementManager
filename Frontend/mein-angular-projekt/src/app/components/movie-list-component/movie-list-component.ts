@@ -27,8 +27,9 @@ export class MovieListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.searchMovies('Thor'); // Beispielaufruf
+    this.searchMovies('Thor');
   }
+
 
   searchMovies(name: string): void {
     console.log('🔍 Suche gestartet mit:', name);
@@ -72,5 +73,30 @@ export class MovieListComponent implements OnInit {
         }
       });
   }
+
+  loadTrendingMovies(timeWindow: 'day' | 'week'): void {
+    this.movies = [];
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.cdr.markForCheck();
+
+    this.movieService.getTrendingMovies(timeWindow)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.movies = [...response.results];
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.errorMessage = 'Fehler beim Laden der Trending-Filme.';
+        }
+      });
+  }
+
 
 }

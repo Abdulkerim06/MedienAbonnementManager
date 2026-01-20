@@ -1,0 +1,50 @@
+<div class="container mx-auto px-6 py-10 text-white">
+
+  <h1 class="text-3xl font-bold mb-8">Meine Abonnements</h1>
+
+  <!-- Add Provider -->
+  <div class="bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-lg mb-10 border border-gray-700">
+    <h2 class="text-xl font-semibold mb-4">Abo hinzufügen</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <input
+        type="text"
+        placeholder="Provider (z. B. Netflix)"
+        [(ngModel)]="newProviderName"
+        class="bg-gray-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-400"
+      />
+
+      <input
+        type="date"
+        [(ngModel)]="newEndDate"
+        class="bg-gray-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-400"
+      />
+
+      <button
+        (click)="addProvider()"
+        class="bg-cyan-500 hover:bg-cyan-600 transition-colors duration-300 rounded-md font-semibold px-4 py-2"
+      >
+        Hinzufügen
+      </button>
+    </div>
+  </div>
+
+  <!-- Provider List -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let provider of providers"
+      class="bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-700
+             hover:shadow-cyan-500/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+    >
+      <h3 class="text-xl font-semibold mb-2">{{ provider.name }}</h3>
+
+      <p class="text-gray-300">
+        Läuft bis:
+        <span class="font-bold text-cyan-400">
+          {{ provider.endDate | date:'dd.MM.yyyy' }}
+        </span>
+      </p>
+    </div>
+  </div>
+
+</div>

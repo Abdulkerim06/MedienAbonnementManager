@@ -5,19 +5,15 @@
     </a>
     <ul class="hidden md:flex items-center space-x-6">
       <li><a routerLink="/movies" routerLinkActive="text-cyan-400" [routerLinkActiveOptions]="{exact: true}" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Filme</a></li>
+      <li><a routerLink="/providers" routerLinkActive="text-cyan-400" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Abos</a></li>
       <li><a routerLink="/about" routerLinkActive="text-cyan-400" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Über uns</a></li>
       <!--@if (//authService.isLoggedIn()) {
         <li><a routerLink="/favorites" routerLinkActive="text-cyan-400" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Meine Abos</a></li>
       }-->
     </ul>
     <div class="auth-section flex items-center space-x-4">
-      <!--@if (!authService.isLoggedIn()) {
-        <a routerLink="/login" class="cursor-pointer hidden sm:block text-sm py-2 px-4 rounded-md hover:bg-gray-700 transition-colors duration-300">Login</a>
-        <a routerLink="/register" class="cursor-pointer text-sm bg-cyan-600 text-white py-2 px-4 rounded-md hover:bg-cyan-700 transition-transform duration-300 transform hover:scale-105">Registrieren</a>
-      } @else {-->
         <span class="hidden sm:block text-sm">Hi, <!--{{authService.username() }}--></span>
         <a (click)="logout()" class="cursor-pointer text-sm bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-transform duration-300 transform hover:scale-105">Logout</a>
-      <!--}-->
     </div>
   </div>
 </nav>
