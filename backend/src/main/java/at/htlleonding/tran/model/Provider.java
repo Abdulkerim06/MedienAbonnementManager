@@ -1,16 +1,22 @@
 package at.htlleonding.tran.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Provider {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    Long Id;
-    String name;
-
+    private Long Id;
+    @Column(name = "provider_name")
+    private String providerName;
     @Column(name = "logo_path")
-    String LogoPath;
+    private String LogoPath;
+    @OneToMany(mappedBy = "provider")
+    @JsonIgnoreProperties
+    private List<CountryPriority> countryPriorityList;
 
     public Long getId() {
         return Id;
@@ -20,12 +26,12 @@ public class Provider {
         Id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getProviderName() {
+        return providerName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setProviderName(String providerName) {
+        this.providerName = providerName;
     }
 
     public String getLogoPath() {
@@ -34,5 +40,13 @@ public class Provider {
 
     public void setLogoPath(String logoPath) {
         LogoPath = logoPath;
+    }
+
+    public List<CountryPriority> getCountryPriorityList() {
+        return countryPriorityList;
+    }
+
+    public void setCountryPriorityList(List<CountryPriority> countryPriorityList) {
+        this.countryPriorityList = countryPriorityList;
     }
 }

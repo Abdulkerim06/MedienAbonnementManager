@@ -4,23 +4,27 @@ GET https://examples.http-client.intellij.net/get
 
 ###
 GET http://localhost:8080/api/movies/550/providers
-Authorization: Bearer <dein_jwt_token>
+
 
 ### Transformers
 GET http://localhost:8080/api/movies/1858/providers
-Authorization: Bearer <dein_jwt_token>
+
 
 ###
 GET http://localhost:8080/api/movies/id/550
-Authorization: Bearer <dein_jwt_token>
+
 
 ###
 GET http://localhost:8080/api/movies/name/transformers
-Authorization: Bearer <dein_jwt_token>
+
 
 ###
 GET http://localhost:8080/api/movies/name/Thor
-Authorization: Bearer <dein_jwt_token>
+
+
+###
+GET http://localhost:8080/api/provider
+Content-Type: */*
 
 ###
 #GET http://localhost:8080/api/movies/1858/providers/filtered

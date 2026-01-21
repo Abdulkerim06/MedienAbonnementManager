@@ -15,6 +15,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 
+import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Set;
 
