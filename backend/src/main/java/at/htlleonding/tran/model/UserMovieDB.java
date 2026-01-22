@@ -9,9 +9,8 @@ import java.util.*;
 //)
 
 @Entity
-public class UserMovieDb {
-
-
+@Table(name = "user_movie_db")
+public class UserMovieDB {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -19,10 +18,13 @@ public class UserMovieDb {
     private String email;
     private String password;
 
-    @ElementCollection
-    @CollectionTable(name = "user_providers", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "provider_name")
-    private Set<String> providers = new HashSet<>();
+    @ManyToMany
+    @JoinTable(
+            name = "user_movie_db_provider",
+            joinColumns = @JoinColumn(name = "user_movie_db_id"),
+            inverseJoinColumns = @JoinColumn(name = "provider_id")
+    )
+    private Set<Provider> providers = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -56,11 +58,11 @@ public class UserMovieDb {
         this.password = password;
     }
 
-    public Set<String> getProviders() {
+    public Set<Provider> getProviders() {
         return providers;
     }
 
-    public void setProviders(Set<String> providers) {
+    public void setProviders(Set<Provider> providers) {
         this.providers = providers;
     }
 }

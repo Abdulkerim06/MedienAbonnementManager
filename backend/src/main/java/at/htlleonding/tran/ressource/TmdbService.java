@@ -123,49 +123,49 @@ public class TmdbService {
         }
     }
 
-
-    public List<ProviderInfoDTO> getFilteredProvidersAndCheckedForProvidersOfUser(int movieId, String countryCode, Long userId) throws Exception {
-        // TMDB API URL
-        String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
-
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("accept", "application/json")
-                .addHeader("Authorization", "Bearer " + tmdbV4Token)
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new RuntimeException("API call failed: " + response);
-            }
-
-            // JSON parsen
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response.body().string());
-
-            JsonNode flatrate = root.path("results").path(countryCode).path("flatrate");
-
-            // User-Provider holen
-            Set<String> userProviders = userMovieDBRepository.findProvidersByUser(userId);
-
-            List<ProviderInfoDTO> providers = new ArrayList<>();
-            if (flatrate.isArray()) {
-                for (JsonNode provider : flatrate) {
-                    String name = provider.path("provider_name").asText();
-                    String logo = "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText();
-
-                    boolean owned = userProviders.contains(name); // Abgleich
-                    if (owned) {
-                        providers.add(new ProviderInfoDTO(provider.path("provider_name").asText(),
-                                logo,true));
-                    }
-                }
-            }
-
-            return providers;
-        }
-    }
+//
+//    public List<ProviderInfoDTO> getFilteredProvidersAndCheckedForProvidersOfUser(int movieId, String countryCode, Long userId) throws Exception {
+//        // TMDB API URL
+//        String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
+//
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .get()
+//                .addHeader("accept", "application/json")
+//                .addHeader("Authorization", "Bearer " + tmdbV4Token)
+//                .build();
+//
+//        try (Response response = client.newCall(request).execute()) {
+//            if (!response.isSuccessful()) {
+//                throw new RuntimeException("API call failed: " + response);
+//            }
+//
+//            // JSON parsen
+//            ObjectMapper mapper = new ObjectMapper();
+//            JsonNode root = mapper.readTree(response.body().string());
+//
+//            JsonNode flatrate = root.path("results").path(countryCode).path("flatrate");
+//
+//            // User-Provider holen
+//            Set<String> userProviders = userMovieDBRepository.findProvidersByUser(userId);
+//
+//            List<ProviderInfoDTO> providers = new ArrayList<>();
+//            if (flatrate.isArray()) {
+//                for (JsonNode provider : flatrate) {
+//                    String name = provider.path("provider_name").asText();
+//                    String logo = "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText();
+//
+//                    boolean owned = userProviders.contains(name); // Abgleich
+//                    if (owned) {
+//                        providers.add(new ProviderInfoDTO(provider.path("provider_name").asText(),
+//                                logo,true));
+//                    }
+//                }
+//            }
+//
+//            return providers;
+//        }
+//    }
 
     public List<TrendingMovieDTO> getTrendingMovies(String timewindow){
         String url = "https://api.themoviedb.org/3/trending/movie/" + timewindow;

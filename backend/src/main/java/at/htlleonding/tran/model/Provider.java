@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Provider {
@@ -17,6 +18,9 @@ public class Provider {
     @OneToMany(mappedBy = "provider")
     @JsonIgnoreProperties
     private List<CountryPriority> countryPriorityList;
+
+    @ManyToMany(mappedBy = "providers")
+    Set<UserMovieDB> userMovieDBS;
 
     public Long getId() {
         return Id;

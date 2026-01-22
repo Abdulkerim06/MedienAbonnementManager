@@ -68,7 +68,7 @@ Content-Type: application/json
 "toRemove": ["Netflix"]
 }
 
-### by user filtered
+### by userMovieDB filtered
 
 GET http://localhost:8080/api/movies/1858/1/providers/filtered/ByUserProvider
 Content-Type: application/json
@@ -78,7 +78,7 @@ Content-Type: application/json
 
 GET http://localhost:8080/security
 
-###user
+###userMovieDB
 
 GET http://localhost:8080/api/users/test
 Content-Type: */*

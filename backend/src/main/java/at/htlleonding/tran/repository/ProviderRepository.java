@@ -1,11 +1,10 @@
 package at.htlleonding.tran.repository;
 
 import at.htlleonding.tran.model.Provider;
-import at.htlleonding.tran.model.UserMovieDb;
+import at.htlleonding.tran.model.UserMovieDB;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -23,6 +22,20 @@ public class ProviderRepository {
         }
         this.em.persist(provider);
     }
+
+    public List<Provider> toAddProvider(List<Provider> toAdd, Long id){
+        List<UserMovieDB> resultList = this.em.createQuery("select UserMovieDB from UserMovieDB users where users.id == id", UserMovieDB.class)
+                .getResultList();
+        return null;
+    }
+
+    public List<Provider> toRemoveProvider(List<Provider> toRemove, Long id){
+        List<UserMovieDB> resultList = this.em.createQuery("select UserMovieDB from UserMovieDB users where users.id == id", UserMovieDB.class)
+                .getResultList();
+        return null;
+    }
+
+
 
 
 }
