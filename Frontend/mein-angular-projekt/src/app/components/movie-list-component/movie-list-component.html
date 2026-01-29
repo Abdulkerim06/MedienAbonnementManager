@@ -32,13 +32,15 @@
   }
 
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-    @for (movie of movies; track movie.title) {
+    @for (movie of movies; track movie.id)
+      {
       <div class="bg-gray-800 rounded-xl overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
         <img *ngIf="movie.poster_path" [src]="'https://image.tmdb.org/t/p/w500' + movie.poster_path" [alt]="movie.title" class="w-full h-auto object-cover" />
         <div class="p-4">
           <h3 class="text-lg font-bold text-white">{{ movie.title }} ({{ movie.release_date | date:'yyyy' }})</h3>
           <p class="text-sm text-gray-400 mt-2 h-20 overflow-hidden text-ellipsis">{{ movie.overview }}</p>
-          <p class="mt-4 font-bold text-lg text-yellow-400">⭐ {{ movie.vote_average.toFixed(1) }} / 10 <span class="text-xs text-gray-500">({{ movie.vote_count }} Stimmen)</span></p>
+          ⭐ {{ (movie.vote_average ?? 0).toFixed(1) }} / 10
+          <span class="text-xs text-gray-500">({{ movie.vote_count ?? 0 }} Stimmen)</span>
         </div>
       </div>
     }

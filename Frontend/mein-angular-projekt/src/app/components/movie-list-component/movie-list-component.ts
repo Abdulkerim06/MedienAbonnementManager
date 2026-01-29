@@ -27,8 +27,9 @@ export class MovieListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.searchMovies('Thor');
+    this.loadTrendingMovies('day'); // oder 'week'
   }
+
 
 
   searchMovies(name: string): void {
@@ -58,13 +59,36 @@ export class MovieListComponent implements OnInit {
         next: (response) => {
           console.log('✅ Antwort vom Server:', response);
 
-          this.movies = response.results;
+          const q = normalizeTitle(name);
+          console.log('count:', response.results.length);
+          console.log(response.results.map(m => m.title));
 
-          // 2️⃣ Anfrage erfolgreich, aber keine Ergebnisse
+          this.movies = (response.results ?? [])
+            .slice()
+            .sort((a, b) => {
+              const ra = matchRank(a.title, q);
+              const rb = matchRank(b.title, q);
+              if (ra !== rb) return ra - rb; // 0 ist am besten
+
+              // 1) Bekanntheit
+              const vc = (b.vote_count ?? 0) - (a.vote_count ?? 0);
+              if (vc !== 0) return vc;
+
+              // 2) Bewertung
+              const va = (b.vote_average ?? 0) - (a.vote_average ?? 0);
+              if (va !== 0) return va;
+
+              // 3) Popularität
+              return (b.popularity ?? 0) - (a.popularity ?? 0);
+            });
+
           if (this.movies.length === 0) {
             this.errorMessage = 'Keine Filme gefunden.';
           }
+
+          this.cdr.markForCheck();
         },
+
         error: (error) => {
           console.error('❌ Fehler:', error);
 
@@ -81,22 +105,55 @@ export class MovieListComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.movieService.getTrendingMovies(timeWindow)
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-          this.cdr.markForCheck();
-        })
-      )
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
-        next: (response) => {
-          this.movies = [...response.results];
+        next: (movies) => {
+          this.movies = movies;
+          if (this.movies.length === 0) this.errorMessage = 'Keine Trending-Filme gefunden.';
           this.cdr.markForCheck();
         },
         error: () => {
           this.errorMessage = 'Fehler beim Laden der Trending-Filme.';
+          this.cdr.markForCheck();
         }
       });
   }
 
 
+
 }
+
+function normalizeTitle(s: string): string {
+  return (s ?? '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function matchRank(title: string, queryNorm: string): number {
+  const t = normalizeTitle(title);
+
+  if (!queryNorm) return 9;
+
+  // 0: exakt (Thor)
+  if (t === queryNorm) return 0;
+
+  // 1: beginnt mit "thor:" oder "thor " (Thor: Love and Thunder / Thor Ragnarok)
+  // normalizeTitle macht ":" zu space, daher prüfen wir auf startsWith(queryNorm)
+  if (t.startsWith(queryNorm)) return 1;
+
+  // 2: enthält als eigenes Wort (… thor …)
+  if ((' ' + t + ' ').includes(' ' + queryNorm + ' ')) return 2;
+
+  // 3: enthält irgendwie
+  if (t.includes(queryNorm)) return 3;
+
+  return 9;
+}
+
+
