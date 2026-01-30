@@ -18,6 +18,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,13 +72,21 @@ public class TmdbService {
         }
     }
 
-    public String getMovieByName(String movieName) throws Exception {
+    public String getMovieByName(String movieName, int page) throws Exception {
+
+        String encodedName = URLEncoder.encode(movieName, StandardCharsets.UTF_8);
+
         Request request = new Request.Builder()
-                .url(" https://api.themoviedb.org/3/search/movie?query=" + movieName)
+                .url("https://api.themoviedb.org/3/search/movie"
+                        + "?query=" + encodedName
+                        + "&page=" + page
+                        + "&language=de-DE"
+                        + "&include_adult=false")
                 .get()
                 .addHeader("accept", "application/json")
                 .addHeader("Authorization", "Bearer " + tmdbV4Token)
                 .build();
+
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 throw new RuntimeException("API call failed: " + response);

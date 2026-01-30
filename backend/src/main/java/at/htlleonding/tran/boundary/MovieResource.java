@@ -46,11 +46,14 @@ public class MovieResource {
     @PermitAll
     @GET
     @Path("/name/{name}")
-    public Response getMovieById(@PathParam("name") String movieName){
+    public Response getMovieByName(
+            @PathParam("name") String movieName,
+            @QueryParam("page") @DefaultValue("1") int page
+    ) {
         try {
-            String json = tmdbService.getMovieByName(movieName);
+            String json = tmdbService.getMovieByName(movieName, page);
             return Response.ok(json).build();
-        }catch (Exception e) {
+        } catch (Exception e) {
             return Response.status(Response.Status.BAD_GATEWAY)
                     .entity("{\"error\": \"" + e.getMessage() + "\"}")
                     .build();

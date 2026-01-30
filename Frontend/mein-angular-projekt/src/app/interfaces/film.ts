@@ -11,6 +11,7 @@ export interface Film {
   release_date: string;
   title: string;
   video: boolean;
-  vote_average: number;
-  vote_count: number;
+
+  vote_average?: number; // <- optional
+  vote_count?: number;   // <- optional
 }

@@ -5,7 +5,7 @@ import { MovieService } from '../../services/movie-service';
 import { Film } from '../../interfaces/film';
 import {NgIf} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {finalize} from 'rxjs';
+import {finalize, forkJoin} from 'rxjs';
 
 @Component({
   selector: 'app-movie-list',
@@ -20,6 +20,14 @@ export class MovieListComponent implements OnInit {
   movies: Film[] = [];
   isLoading = false;
   errorMessage = '';
+  // 🔎 / 🔥 View-State
+  viewMode: 'trending' | 'search' = 'trending';
+  activeTrending: 'day' | 'week' = 'day';
+
+  // ✅ Pagination-State
+  currentQuery = '';
+  currentPage = 1;
+  totalPages = 1;
 
   constructor(
     private movieService: MovieService,
@@ -27,60 +35,53 @@ export class MovieListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadTrendingMovies('day'); // oder 'week'
+    this.loadTrendingMovies('day');
   }
 
-
-
+  // =========================
+  // 🔍 SEARCH ENTRY POINT
+  // =========================
   searchMovies(name: string): void {
-    console.log('🔍 Suche gestartet mit:', name);
+    if (!name.trim()) return;
 
-    // 1️⃣ Leere Eingabe → kein API-Call
-    if (!name.trim()) {
-      this.movies = [];
-      this.errorMessage = 'Bitte einen Filmtitel eingeben.';
-      this.isLoading = false;
-      this.cdr.markForCheck();
-      return;
-    }
+    this.viewMode = 'search';
+    this.currentQuery = name;
 
+    this.loadSearchPage(1);
+  }
+
+  // =========================
+  // 📄 LOAD ONE PAGE
+  // =========================
+  loadSearchPage(page: number): void {
     this.isLoading = true;
     this.errorMessage = '';
     this.cdr.markForCheck();
 
-    this.movieService.getMoviesByName(name)
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-          this.cdr.markForCheck();
-        })
-      )
+    this.movieService.getMoviesByName(this.currentQuery, page)
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (response) => {
-          console.log('✅ Antwort vom Server:', response);
+          this.currentPage = response.page ?? page;
+          this.totalPages = response.total_pages ?? 1;
 
-          const q = normalizeTitle(name);
-          console.log('count:', response.results.length);
-          console.log(response.results.map(m => m.title));
+          const results = (response.results ?? []).slice();
 
-          this.movies = (response.results ?? [])
-            .slice()
-            .sort((a, b) => {
-              const ra = matchRank(a.title, q);
-              const rb = matchRank(b.title, q);
-              if (ra !== rb) return ra - rb; // 0 ist am besten
+          // ⭐ meist bewertete zuerst
+          results.sort((a, b) => {
+            const vc = (b.vote_count ?? 0) - (a.vote_count ?? 0);
+            if (vc !== 0) return vc;
 
-              // 1) Bekanntheit
-              const vc = (b.vote_count ?? 0) - (a.vote_count ?? 0);
-              if (vc !== 0) return vc;
+            const va = (b.vote_average ?? 0) - (a.vote_average ?? 0);
+            if (va !== 0) return va;
 
-              // 2) Bewertung
-              const va = (b.vote_average ?? 0) - (a.vote_average ?? 0);
-              if (va !== 0) return va;
+            return (b.popularity ?? 0) - (a.popularity ?? 0);
+          });
 
-              // 3) Popularität
-              return (b.popularity ?? 0) - (a.popularity ?? 0);
-            });
+          this.movies = results;
 
           if (this.movies.length === 0) {
             this.errorMessage = 'Keine Filme gefunden.';
@@ -88,17 +89,41 @@ export class MovieListComponent implements OnInit {
 
           this.cdr.markForCheck();
         },
-
         error: (error) => {
           console.error('❌ Fehler:', error);
-
-          // 3️⃣ Technischer Fehler
           this.errorMessage = 'Fehler beim Laden der Filme.';
+          this.cdr.markForCheck();
         }
       });
   }
 
+  // =========================
+  // ⬅️➡️ PAGINATION
+  // =========================
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.loadSearchPage(this.currentPage - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.loadSearchPage(this.currentPage + 1);
+    }
+  }
+
+  // =========================
+  // 🔥 TRENDING
+  // =========================
   loadTrendingMovies(timeWindow: 'day' | 'week'): void {
+    this.viewMode = 'trending';
+    this.activeTrending = timeWindow;
+
+    // Pagination zurücksetzen
+    this.currentQuery = '';
+    this.currentPage = 1;
+    this.totalPages = 1;
+
     this.movies = [];
     this.isLoading = true;
     this.errorMessage = '';
@@ -112,7 +137,9 @@ export class MovieListComponent implements OnInit {
       .subscribe({
         next: (movies) => {
           this.movies = movies;
-          if (this.movies.length === 0) this.errorMessage = 'Keine Trending-Filme gefunden.';
+          if (this.movies.length === 0) {
+            this.errorMessage = 'Keine Trending-Filme gefunden.';
+          }
           this.cdr.markForCheck();
         },
         error: () => {
@@ -124,36 +151,6 @@ export class MovieListComponent implements OnInit {
 
 
 
-}
-
-function normalizeTitle(s: string): string {
-  return (s ?? '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function matchRank(title: string, queryNorm: string): number {
-  const t = normalizeTitle(title);
-
-  if (!queryNorm) return 9;
-
-  // 0: exakt (Thor)
-  if (t === queryNorm) return 0;
-
-  // 1: beginnt mit "thor:" oder "thor " (Thor: Love and Thunder / Thor Ragnarok)
-  // normalizeTitle macht ":" zu space, daher prüfen wir auf startsWith(queryNorm)
-  if (t.startsWith(queryNorm)) return 1;
-
-  // 2: enthält als eigenes Wort (… thor …)
-  if ((' ' + t + ' ').includes(' ' + queryNorm + ' ')) return 2;
-
-  // 3: enthält irgendwie
-  if (t.includes(queryNorm)) return 3;
-
-  return 9;
 }
 
 

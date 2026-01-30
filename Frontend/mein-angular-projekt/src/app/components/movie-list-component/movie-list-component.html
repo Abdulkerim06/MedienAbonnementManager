@@ -1,17 +1,32 @@
+<h2 class="text-2xl font-bold text-white mb-4">
+  @if (viewMode === 'trending') {
+    🔥 Trending Movies
+    <span class="text-cyan-400">
+      ({{ activeTrending === 'day' ? 'Heute' : 'Diese Woche' }})
+    </span>
+  } @else {
+    🔍 Suchergebnisse für
+    <span class="text-cyan-400">"{{ currentQuery }}"</span>
+  }
+</h2>
+
 <div class="flex gap-4 mb-6">
   <button
     (click)="loadTrendingMovies('day')"
-    class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-cyan-600">
+    [class.bg-cyan-600]="viewMode === 'trending' && activeTrending === 'day'"
+    [class.bg-gray-700]="!(viewMode === 'trending' && activeTrending === 'day')"
+    class="px-4 py-2 rounded-lg text-white hover:bg-cyan-600 transition-colors">
     Heute
   </button>
 
   <button
     (click)="loadTrendingMovies('week')"
-    class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-cyan-600">
+    [class.bg-cyan-600]="viewMode === 'trending' && activeTrending === 'week'"
+    [class.bg-gray-700]="!(viewMode === 'trending' && activeTrending === 'week')"
+    class="px-4 py-2 rounded-lg text-white hover:bg-cyan-600 transition-colors">
     Diese Woche
   </button>
 </div>
-
 
 <div class="animate-fade-in">
   <div class="movie-search mb-8 flex flex-col sm:flex-row gap-2">
@@ -27,22 +42,64 @@
   @if (isLoading) {
     <div class="text-center p-8 text-lg">🔄 Filme werden geladen...</div>
   }
+
   @if (errorMessage) {
-    <div class="text-center p-8 text-red-400 bg-red-900/50 rounded-lg">{{ errorMessage }}</div>
+    <div class="text-center p-8 text-red-400 bg-red-900/50 rounded-lg">
+      {{ errorMessage }}
+    </div>
   }
 
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-    @for (movie of movies; track movie.id)
-      {
+    @for (movie of movies; track movie.id) {
       <div class="bg-gray-800 rounded-xl overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
-        <img *ngIf="movie.poster_path" [src]="'https://image.tmdb.org/t/p/w500' + movie.poster_path" [alt]="movie.title" class="w-full h-auto object-cover" />
+
+        <img
+          *ngIf="movie.poster_path"
+          [src]="'https://image.tmdb.org/t/p/w500' + movie.poster_path"
+          [alt]="movie.title"
+          class="w-full h-auto object-cover"
+        />
+
         <div class="p-4">
-          <h3 class="text-lg font-bold text-white">{{ movie.title }} ({{ movie.release_date | date:'yyyy' }})</h3>
-          <p class="text-sm text-gray-400 mt-2 h-20 overflow-hidden text-ellipsis">{{ movie.overview }}</p>
-          ⭐ {{ (movie.vote_average ?? 0).toFixed(1) }} / 10
-          <span class="text-xs text-gray-500">({{ movie.vote_count ?? 0 }} Stimmen)</span>
+          <h3 class="text-lg font-bold text-white">
+            {{ movie.title }} ({{ movie.release_date | date:'yyyy' }})
+          </h3>
+
+          <p class="text-sm text-gray-400 mt-2 h-20 overflow-hidden text-ellipsis">
+            {{ movie.overview }}
+          </p>
+
+          <p class="mt-4 font-bold text-lg text-yellow-400">
+            ⭐ {{ (movie.vote_average ?? 0).toFixed(1) }} / 10
+            <span class="text-xs text-gray-500">
+              ({{ movie.vote_count ?? 0 }} Stimmen)
+            </span>
+          </p>
         </div>
       </div>
     }
   </div>
+
+  <!-- ✅ Pagination nur anzeigen, wenn eine Suche aktiv ist -->
+  @if (currentQuery) {
+    <div class="flex items-center justify-center gap-3 mt-8">
+      <button
+        (click)="prevPage()"
+        [disabled]="currentPage <= 1 || isLoading"
+        class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-cyan-600 disabled:opacity-50 disabled:hover:bg-gray-700">
+        ◀ Zurück
+      </button>
+
+      <span class="text-gray-300">
+        Seite <b>{{ currentPage }}</b> von <b>{{ totalPages }}</b>
+      </span>
+
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage >= totalPages || isLoading"
+        class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-cyan-600 disabled:opacity-50 disabled:hover:bg-gray-700">
+        Weiter ▶
+      </button>
+    </div>
+  }
 </div>
