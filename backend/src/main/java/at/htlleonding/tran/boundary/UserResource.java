@@ -1,15 +1,17 @@
 package at.htlleonding.tran.boundary;
 
-import at.htlleonding.tran.dto.ProviderUpdateRequest;
+import at.htlleonding.tran.dto.SubscriptionUpdateDTO;
 import at.htlleonding.tran.model.UserMovieDB;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+
+import java.util.List;
+import java.util.UUID;
 
 
 @Path("/api/users")
@@ -42,9 +44,13 @@ public class UserResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addUser(UserMovieDB userMovieDB) {
+    public Response addUser(UUID uuid) {
+        UserMovieDB user = userRepo.findById(uuid.toString());
         try {
-            this.userRepo.save(userMovieDB);
+            if (user == null){
+                user = new UserMovieDB(uuid);
+                this.userRepo.save(user);
+            }
         }catch (Exception ex) {
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
@@ -52,8 +58,36 @@ public class UserResource {
                             .build()
             );
         }
-        return Response.status(Response.Status.CREATED).entity(userMovieDB).build();
+        return Response.status(Response.Status.CREATED).entity(user).build();
     }
+
+
+
+    @PUT
+    @Path("/providers")
+    public Response updateProvider(
+            @QueryParam("UUID") UUID userId,
+            @QueryParam("provider") List<SubscriptionUpdateDTO> updates
+    ){
+        UserMovieDB user = userRepo.findById(userId.toString());
+        try {
+            userRepo.updateSubscriptions(userId,updates);
+        }catch (Exception ex) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.BAD_REQUEST)
+                            .entity(String.format("{\"message\": \"%s\"}",ex.getMessage()))
+                            .build()
+            );
+        }
+        return Response.status(Response.Status.CREATED).entity(user).build();
+    }
+
+//    @POST
+//    public  Response createuser(){
+//        return null;
+//    }
+
+
 
 //    @PUT
 //    @Path("/{id}/providers")

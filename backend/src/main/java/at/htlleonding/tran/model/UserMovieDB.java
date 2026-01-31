@@ -11,58 +11,30 @@ import java.util.*;
 @Entity
 @Table(name = "user_movie_db")
 public class UserMovieDB {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
-    private String name;
-    private String email;
-    private String password;
+    private UUID id; // Keycloak sub
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_movie_db_provider",
-            joinColumns = @JoinColumn(name = "user_movie_db_id"),
-            inverseJoinColumns = @JoinColumn(name = "provider_id")
-    )
-    private Set<Provider> providers = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserProviderSubscription> subscriptions = new HashSet<>();
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
+    public UserMovieDB(UUID id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public UUID getId() {
+        return id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public String getEmail() {
-        return email;
+    public Set<UserProviderSubscription> getSubscriptions() {
+        return subscriptions;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Set<Provider> getProviders() {
-        return providers;
-    }
-
-    public void setProviders(Set<Provider> providers) {
-        this.providers = providers;
+    public void setSubscriptions(Set<UserProviderSubscription> subscriptions) {
+        this.subscriptions = subscriptions;
     }
 }

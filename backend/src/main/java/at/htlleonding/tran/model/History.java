@@ -11,7 +11,7 @@ public class History {
     Long id;
     Long keycloakuserId;
     Long movieId;
-    LocalDate createdAt;
+    LocalDate watchedAt;
 
     public Long getId() {
         return id;
@@ -38,10 +38,10 @@ public class History {
     }
 
     public LocalDate getCreatedAt() {
-        return createdAt;
+        return watchedAt;
     }
 
     public void setCreatedAt(LocalDate createdAt) {
-        this.createdAt = createdAt;
+        this.watchedAt = createdAt;
     }
 }

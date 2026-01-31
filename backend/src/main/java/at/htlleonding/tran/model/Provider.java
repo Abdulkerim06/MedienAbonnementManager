@@ -19,8 +19,9 @@ public class Provider {
     @JsonIgnoreProperties
     private List<CountryPriority> countryPriorityList;
 
-    @ManyToMany(mappedBy = "providers")
-    Set<UserMovieDB> userMovieDBS;
+    @OneToMany(mappedBy = "provider")
+    private Set<UserProviderSubscription> subscriptions;
+
 
     public Long getId() {
         return Id;
