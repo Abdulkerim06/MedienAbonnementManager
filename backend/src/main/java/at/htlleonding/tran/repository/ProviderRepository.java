@@ -23,19 +23,50 @@ public class ProviderRepository {
         this.em.persist(provider);
     }
 
-    public List<Provider> toAddProvider(List<Provider> toAdd, Long id){
-        List<UserMovieDB> resultList = this.em.createQuery("select UserMovieDB from UserMovieDB users where users.id == id", UserMovieDB.class)
-                .getResultList();
-        return null;
+    public Provider findByTmdbProviderId(Long tmdbProviderId) {
+        return em.createQuery(
+                        "select p from Provider p where p.tmdbProviderId = :tmdbId",
+                        Provider.class
+                )
+                .setParameter("tmdbId", tmdbProviderId)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
     }
 
-    public List<Provider> toRemoveProvider(List<Provider> toRemove, Long id){
-        List<UserMovieDB> resultList = this.em.createQuery("select UserMovieDB from UserMovieDB users where users.id == id", UserMovieDB.class)
-                .getResultList();
-        return null;
+    @Transactional
+    public Provider upsertFromTmdb(Long tmdbProviderId, String name, String logoPath) {
+        Provider existing = findByTmdbProviderId(tmdbProviderId);
+        if (existing != null) {
+            existing.setProviderName(name);
+            existing.setLogoPath(logoPath);
+            return existing;
+        }
+
+        Provider created = new Provider();
+        created.setTmdbProviderId(tmdbProviderId);
+        created.setProviderName(name);
+        created.setLogoPath(logoPath);
+        em.persist(created);
+        return created;
     }
 
+    public List<Provider> toAddProvider(List<Provider> toAdd, Long id) {
+        List<Provider> resultList = this.em.createQuery("select p from Provider p ", Provider.class)
+                .getResultList();
 
+        return resultList;
+    }
 
+    public List<Provider> toRemoveProvider(List<Provider> toRemove, Long id) {
+        List<Provider> resultList = this.em.createQuery("select p from Provider p", Provider.class)
+                .getResultList();
+        return resultList;
+    }
 
+    public List<Provider> findAll() {
+        List<Provider> resultList = this.em.createQuery("select p from Provider p", Provider.class)
+                .getResultList();
+        return resultList;
+    }
 }

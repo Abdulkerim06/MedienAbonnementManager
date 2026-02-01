@@ -1,35 +1,36 @@
 package at.htlleonding.tran.boundary;
 
-
-import at.htlleonding.tran.dto.ProviderApi;
 import at.htlleonding.tran.model.Provider;
-import at.htlleonding.tran.ressource.TmdbService;
+import at.htlleonding.tran.repository.ProviderRepository;
+import at.htlleonding.tran.ressource.ProviderSyncService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Path("/api/provider")
+@Path("/providers")
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class ProviderRessource {
+
     @Inject
-    TmdbService tmdbService;
+    ProviderRepository providerRepo;
+
+    @Inject
+    ProviderSyncService providerSyncService;
 
     @GET
-    public Response getAllProvider(){
-        try {
-            List<ProviderApi> json = tmdbService.getProviders();
-            return Response.ok(json).build();
-        }catch (Exception e) {
-            return Response.status(Response.Status.BAD_GATEWAY)
-                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
-                    .build();
-        }
+    public Response getAllProvidersFromDb() {
+        List<Provider> providers = providerRepo.findAll();
+        return Response.ok(providers).build();
     }
 
+    @POST
+    @Path("/sync")
+    public Response syncProvidersFromTmdb() {
+        providerSyncService.syncProviders();
+        return Response.noContent().build();
+    }
 }

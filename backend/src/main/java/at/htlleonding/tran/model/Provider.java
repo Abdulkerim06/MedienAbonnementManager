@@ -11,10 +11,16 @@ public class Provider {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long Id;
+
+    @Column(name = "tmdb_provider_id", nullable = false, unique = true)
+    private Long tmdbProviderId;
+
     @Column(name = "provider_name")
     private String providerName;
+
     @Column(name = "logo_path")
     private String LogoPath;
+
     @OneToMany(mappedBy = "provider")
     @JsonIgnoreProperties
     private List<CountryPriority> countryPriorityList;
@@ -22,13 +28,20 @@ public class Provider {
     @OneToMany(mappedBy = "provider")
     private Set<UserProviderSubscription> subscriptions;
 
-
     public Long getId() {
         return Id;
     }
 
     public void setId(Long id) {
         Id = id;
+    }
+
+    public Long getTmdbProviderId() {
+        return tmdbProviderId;
+    }
+
+    public void setTmdbProviderId(Long tmdbProviderId) {
+        this.tmdbProviderId = tmdbProviderId;
     }
 
     public String getProviderName() {

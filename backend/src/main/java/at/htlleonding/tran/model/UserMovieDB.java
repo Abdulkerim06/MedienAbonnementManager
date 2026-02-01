@@ -7,7 +7,6 @@ import java.util.*;
 //@NamedQueries(
 //        @NamedQuery(name = "findAll", query = "select *  users from UserMovieDb users")
 //)
-
 @Entity
 @Table(name = "user_movie_db")
 public class UserMovieDB {
@@ -17,6 +16,10 @@ public class UserMovieDB {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserProviderSubscription> subscriptions = new HashSet<>();
+
+    protected UserMovieDB() {
+        // Required by JPA/Hibernate for entity instantiation / proxies
+    }
 
     public UserMovieDB(UUID id) {
         this.id = id;

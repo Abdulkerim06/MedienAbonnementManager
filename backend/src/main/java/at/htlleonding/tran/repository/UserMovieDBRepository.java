@@ -24,6 +24,9 @@ public class UserMovieDBRepository implements PanacheRepository {
     @Inject
     EntityManager em;
 
+    @Inject
+    ProviderRepository providerRepo;
+
     @Transactional
     public void save(UserMovieDB userMovieDB) {
         if (userMovieDB.getId() != null) {
@@ -40,21 +43,25 @@ public class UserMovieDBRepository implements PanacheRepository {
             throw new EntityNotFoundException("User not found: " + userId);
         }
 
-        // bestehende Subscriptions nach Provider-ID mappen
         Map<Long, UserProviderSubscription> existing =
                 user.getSubscriptions().stream()
                         .collect(Collectors.toMap(
-                                s -> s.getProvider().getId(),
+                                s -> s.getProvider().getTmdbProviderId(),
                                 Function.identity()
                         ));
 
         for (SubscriptionUpdateDTO dto : updates) {
+            Long tmdbProviderId = dto.providerId();
 
-            UserProviderSubscription sub = existing.remove(dto.providerId());
+            UserProviderSubscription sub = existing.remove(tmdbProviderId);
 
             if (sub == null) {
-                // ➕ neue Subscription
-                Provider provider = em.find(Provider.class, dto.providerId());
+                Provider provider = providerRepo.findByTmdbProviderId(tmdbProviderId);
+                if (provider == null) {
+                    throw new EntityNotFoundException(
+                            "Provider not in DB (tmdbProviderId=" + tmdbProviderId + "). Sync providers first."
+                    );
+                }
 
                 sub = new UserProviderSubscription();
                 sub.setUser(user);
@@ -64,17 +71,13 @@ public class UserMovieDBRepository implements PanacheRepository {
 
                 user.getSubscriptions().add(sub);
             } else {
-                // ✏️ bestehende aktualisieren
                 sub.setBillingCycle(dto.billingCycle());
                 sub.setLastBillingDate(dto.lastBillingDate());
             }
         }
 
-        // ❌ übrig gebliebene entfernen
         existing.values().forEach(user.getSubscriptions()::remove);
     }
-
-
 
     public UserMovieDB findById(String id) {
         return this.em.find(UserMovieDB.class, id);
@@ -99,9 +102,15 @@ public class UserMovieDBRepository implements PanacheRepository {
                 .getResultStream()
                 .collect(Collectors.toSet());
     }
-//    public List<UserMovieDB> findByUserName(String userName) {
-//        return this.em.createQuery("select users from UserMovieDB users where UserMovieDB.name == {userName}");
-//    }
 
-
+    public Set<Long> findProviderIdsByUser(UUID userId) {
+        return em.createQuery("""
+        select s.provider.id
+        from UserProviderSubscription s
+        where s.user.id = :userId
+        """, Long.class)
+                .setParameter("userId", userId)
+                .getResultStream()
+                .collect(Collectors.toSet());
+    }
 }
