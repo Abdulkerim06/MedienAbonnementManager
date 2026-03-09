@@ -1,5 +1,6 @@
 package at.htlleonding.tran.repository;
 
+import at.htlleonding.tran.dto.ProviderWithOwnership;
 import at.htlleonding.tran.dto.SubscriptionUpdateDTO;
 import at.htlleonding.tran.model.Provider;
 import at.htlleonding.tran.model.UserMovieDB;
@@ -19,7 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class UserMovieDBRepository implements PanacheRepository {
+public class UserMovieDBRepository implements PanacheRepository<UserMovieDB> {
 
     @Inject
     EntityManager em;
@@ -84,6 +85,16 @@ public class UserMovieDBRepository implements PanacheRepository {
     }
 
 
+    /**
+     * Sucht einen User anhand seiner UUID.
+     * Gibt Optional zurück, falls User nicht existiert.
+     */
+    public java.util.Optional<UserMovieDB> findByUUID(UUID userId) {
+        UserMovieDB user = em.find(UserMovieDB.class, userId);
+        return java.util.Optional.ofNullable(user);
+    }
+
+
     public Set<UserProviderSubscription> findProviderSupscriptionByUser(UUID userId) {
         UserMovieDB user = em.find(UserMovieDB.class, userId);
         if (user == null) {
@@ -108,6 +119,51 @@ public class UserMovieDBRepository implements PanacheRepository {
         select s.provider.id
         from UserProviderSubscription s
         where s.user.id = :userId
+        """, Long.class)
+                .setParameter("userId", userId)
+                .getResultStream()
+                .collect(Collectors.toSet());
+    }
+
+    // Neue Methode: Gibt ALLE Provider zurück mit Flag ob User sie hat
+    public List<ProviderWithOwnership> getProvidersWithOwnership(UUID userId) {
+        return em.createQuery("""
+            SELECT new at.htlleonding.tran.dto.ProviderWithOwnership(
+                p.id,
+                p.tmdbProviderId,
+                p.providerName,
+                p.logoPath,
+                CASE WHEN s.id IS NOT NULL THEN true ELSE false END
+            )
+            FROM Provider p
+            LEFT JOIN UserProviderSubscription s 
+                ON s.provider.id = p.id AND s.user.id = :userId
+            ORDER BY p.providerName
+        """, ProviderWithOwnership.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    // Alternative: Nur Provider die der User HAT
+    public List<Provider> getUserOwnedProviders(UUID userId) {
+        return em.createQuery("""
+            SELECT p
+            FROM Provider p
+            JOIN UserProviderSubscription s ON s.provider.id = p.id
+            WHERE s.user.id = :userId
+            ORDER BY p.providerName
+        """, Provider.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    // Für Movie-Provider-Filterung
+    public Set<Long> getUserProviderTmdbIds(UUID userId) {
+        return em.createQuery("""
+            SELECT p.tmdbProviderId
+            FROM UserProviderSubscription s
+            JOIN s.provider p
+            WHERE s.user.id = :userId
         """, Long.class)
                 .setParameter("userId", userId)
                 .getResultStream()

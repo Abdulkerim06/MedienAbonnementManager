@@ -19,9 +19,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 
@@ -114,8 +112,10 @@ public class TmdbService {
             if (flatrate.isArray()) {
                 for (JsonNode provider : flatrate) {
                     providers.add(new ProviderInfoDTO(
+                            provider.path("provider_id").asLong(),
                             provider.path("provider_name").asText(),
-                            "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText()
+                            "https://image.tmdb.org/t/p/w92" + provider.path("logo_path").asText(),
+                            false
                     ));
                 }
             }
@@ -257,5 +257,67 @@ public class TmdbService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public List<ProviderInfoDTO> getFilteredProvidersForUser(
+            Long movieId,
+            String countryCode,
+            UUID userId
+    ) throws Exception {
+
+        // 1. Hole alle Provider für den Film von TMDB
+        String url = "https://api.themoviedb.org/3/movie/" + movieId + "/watch/providers";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer " + tmdbV4Token)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("API call failed: " + response);
+            }
+
+            // 2. Hole User's Provider-IDs aus DB
+            Set<Long> userProviderIds = userMovieDBRepository.getUserProviderTmdbIds(userId);
+
+            // 3. Parse TMDB Response
+            ObjectMapper mapper = new ObjectMapper();
+            String bodyString = response.body().string();
+            JsonNode root = mapper.readTree(bodyString);
+            JsonNode flatrate = root.path("results").path(countryCode).path("flatrate");
+
+            // 4. Baue Response mit Ownership-Flag
+            List<ProviderInfoDTO> providers = new ArrayList<>();
+
+            if (flatrate.isArray()) {
+                for (JsonNode provider : flatrate) {
+                    Long tmdbProviderId = provider.path("provider_id").asLong();
+                    String name = provider.path("provider_name").asText();
+                    String logo = "https://image.tmdb.org/t/p/w92" +
+                            provider.path("logo_path").asText();
+
+                    // Prüfe ob User diesen Provider hat
+                    boolean ownedByUser = userProviderIds.contains(tmdbProviderId);
+
+                    providers.add(new ProviderInfoDTO(
+                            tmdbProviderId,
+                            name,
+                            logo,
+                            ownedByUser
+                    ));
+                }
+            }
+
+            // Optional: Sortiere - User's Provider zuerst
+            providers.sort(Comparator
+                    .comparing(ProviderInfoDTO::ownedByUser)
+                    .reversed()
+            );
+
+            return providers;
+        }
     }
 }

@@ -3,6 +3,7 @@ package at.htlleonding.tran.boundary;
 import at.htlleonding.tran.dto.SubscriptionUpdateDTO;
 import at.htlleonding.tran.model.UserMovieDB;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
+import at.htlleonding.tran.service.UserService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -22,6 +23,9 @@ public class UserResource {
     UserMovieDBRepository userRepo;
 
     @Inject
+    UserService userService;
+
+    @Inject
     JsonWebToken jwt;
 
     @GET
@@ -32,44 +36,37 @@ public class UserResource {
         return "Hallo " + jwt.getName() + ", dein Token ist gültig!";
     }
 
+    /**
+     * Gibt die Daten des aktuell authentifizierten Users zurück.
+     * Erstellt automatisch einen User, falls noch nicht vorhanden.
+     */
+    @GET
+    @Path("/me")
+    @RolesAllowed("user")
+    public Response getCurrentUser() {
+        UserMovieDB user = userService.getCurrentUser();
+        return Response.ok(user).build();
+    }
+
     @PermitAll
     @GET
     public Response getMovieUsers() {
         return Response.ok(userRepo.findAll()).build();
     }
 
-    @PermitAll
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response addUser(UUID uuid) {
-        UserMovieDB user = (UserMovieDB) userRepo.findById(uuid);
-        try {
-            if (user == null) {
-                user = new UserMovieDB(uuid);
-                this.userRepo.save(user);
-            }
-        } catch (Exception ex) {
-            throw new WebApplicationException(
-                    Response.status(Response.Status.BAD_REQUEST)
-                            .entity(String.format("{\"message\": \"%s\"}", ex.getMessage()))
-                            .build()
-            );
-        }
-        return Response.status(Response.Status.CREATED).entity(user).build();
-    }
-
+    /**
+     * Aktualisiert die Provider-Subscriptions des aktuell authentifizierten Users.
+     * User-ID kommt aus dem JWT-Token, nicht aus der URL.
+     */
     @PUT
-    @Path("/{userId}/providers")
+    @Path("/me/subscriptions")
+    @RolesAllowed("user")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateProvider(
-            @PathParam("userId") UUID userId,
-            List<SubscriptionUpdateDTO> updates
-    ) {
+    public Response updateSubscriptions(List<SubscriptionUpdateDTO> updates) {
         try {
-            userRepo.updateSubscriptions(userId, updates);
-            UserMovieDB user = userRepo.findById(userId.toString());
+            UserMovieDB user = userService.getCurrentUser();
+            userRepo.updateSubscriptions(user.getId(), updates);
             return Response.ok(user).build();
         } catch (Exception ex) {
             throw new WebApplicationException(

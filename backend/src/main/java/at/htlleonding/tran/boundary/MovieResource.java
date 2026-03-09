@@ -4,14 +4,18 @@ import at.htlleonding.tran.dto.TrendingMovieDTO;
 import at.htlleonding.tran.repository.UserMovieDBRepository;
 import at.htlleonding.tran.ressource.TmdbService;
 import at.htlleonding.tran.dto.ProviderInfoDTO;
+import at.htlleonding.tran.service.UserService;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 
 import java.util.List;
+import java.util.UUID;
 
 @Path("/api/movies")
 @Produces(MediaType.APPLICATION_JSON)
@@ -22,6 +26,10 @@ public class MovieResource {
     TmdbService tmdbService;
     @Inject
     UserMovieDBRepository userMovieDBRepository;
+    @Inject
+    JsonWebToken jwt;
+    @Inject
+    UserService userService;
 
     @PermitAll
     @GET
@@ -105,6 +113,50 @@ public class MovieResource {
         try {
             List<TrendingMovieDTO> jsonResponse = tmdbService.getTrendingMovies(timeWindow);
             return Response.ok(jsonResponse).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
+    // Endpoint für angemeldete User
+    @GET
+    @Path("/{id}/providers/for-user")
+    @RolesAllowed("user")
+    public Response getProvidersForCurrentUser(
+            @PathParam("id") Long movieId,
+            @QueryParam("country") @DefaultValue("DE") String countryCode
+    ) {
+        try {
+            // Hole User-ID aus JWT
+            UUID userId = UUID.fromString(jwt.getSubject());
+
+            List<ProviderInfoDTO> providers =
+                    tmdbService.getFilteredProvidersForUser(movieId, countryCode, userId);
+
+            return Response.ok(providers).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
+    // Alternativ: Mit expliziter User-ID (für Admin-Zwecke)
+    @GET
+    @Path("/{id}/providers/user/{userId}")
+    @RolesAllowed({"user", "admin"})
+    public Response getProvidersForSpecificUser(
+            @PathParam("id") Long movieId,
+            @PathParam("userId") UUID userId,
+            @QueryParam("country") @DefaultValue("DE") String countryCode
+    ) {
+        try {
+            List<ProviderInfoDTO> providers =
+                    tmdbService.getFilteredProvidersForUser(movieId, countryCode, userId);
+
+            return Response.ok(providers).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_GATEWAY)
                     .entity("{\"error\": \"" + e.getMessage() + "\"}")

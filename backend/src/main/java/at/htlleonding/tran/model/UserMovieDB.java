@@ -1,5 +1,6 @@
 package at.htlleonding.tran.model;
 
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -9,7 +10,7 @@ import java.util.*;
 //)
 @Entity
 @Table(name = "user_movie_db")
-public class UserMovieDB {
+public class UserMovieDB{
 
     @Id
     private UUID id; // Keycloak sub
