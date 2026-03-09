@@ -1,25 +1,35 @@
-import { ApplicationConfig, APP_INITIALIZER, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter, withHashLocation } from '@angular/router';
-import { provideHttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { KeycloakService, KeycloakBearerInterceptor } from 'keycloak-angular';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
+  includeBearerTokenInterceptor,
+  provideKeycloak
+} from 'keycloak-angular';
 import { routes } from './app.routes';
-import { initializeKeycloak } from './init/keycloak-init.factory';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withHashLocation()),
-    provideHttpClient(),
-    KeycloakService,
+    provideHttpClient(withInterceptors([includeBearerTokenInterceptor])),
+    provideKeycloak({
+      config: {
+        url: 'http://localhost:8081',
+        realm: 'angular-realm',
+        clientId: 'angular-client'
+      },
+      initOptions: {
+        onLoad: 'check-sso',
+        checkLoginIframe: false
+      }
+    }),
     {
-      provide: APP_INITIALIZER,
-      useFactory: initializeKeycloak,
-      deps: [KeycloakService],
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: KeycloakBearerInterceptor,
-      multi: true
+      provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
+      useValue: [
+        {
+          urlPattern: /^http:\/\/localhost:8080\/api(\/.*)?$/i
+        }
+      ]
     }
   ]
 };

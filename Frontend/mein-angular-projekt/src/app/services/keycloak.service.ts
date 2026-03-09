@@ -1,23 +1,31 @@
-import {Injectable} from '@angular/core';
-import {KeycloakService} from 'keycloak-angular';
+import { Injectable } from '@angular/core';
+import Keycloak from 'keycloak-js';
 
-
-@Injectable({providedIn: 'root'})
-
+@Injectable({ providedIn: 'root' })
 export class KeycloakOperationService {
-  constructor(private readonly keycloak: KeycloakService) {}
+  constructor(private readonly keycloak: Keycloak) {}
 
   isLoggedIn(): boolean {
-    return this.keycloak.isLoggedIn();
+    return this.keycloak.authenticated;
   }
 
-  logout(): void {
-    this.keycloak.logout();
+  login(options?: Keycloak.KeycloakLoginOptions): Promise<void> {
+    return this.keycloak.login(options);
   }
 
-  getUserProfile(): any{
+  register(options?: Keycloak.KeycloakLoginOptions): Promise<void> {
+    return this.keycloak.register(options);
+  }
+
+  logout(redirectUri?: string): Promise<void> {
+    return this.keycloak.logout(
+      redirectUri
+        ? { redirectUri }
+        : undefined
+    );
+  }
+
+  getUserProfile(): Promise<Keycloak.KeycloakProfile> {
     return this.keycloak.loadUserProfile();
   }
-
-
 }

@@ -7,44 +7,77 @@ import { MovieResponse } from '../interfaces/movie-response';
 @Injectable({ providedIn: 'root' })
 export class MovieService {
   private apiUrl = 'http://localhost:8080/api/movies';
+  private movieCache = new Map<number, Film>();
 
   constructor(private http: HttpClient) {}
 
-  // 🔎 Search (Backend gibt MovieResponse zurück, mit page support)
   getMoviesByName(name: string, page: number = 1): Observable<MovieResponse> {
     return this.http.get<MovieResponse>(
       `${this.apiUrl}/name/${encodeURIComponent(name)}?page=${page}`
+    ).pipe(
+      map((response) => ({
+        ...response,
+        results: (response.results ?? []).map((movie) => this.cacheMovie(this.normalizeMovie(movie)))
+      }))
     );
   }
 
-  // 🎬 Trending (Backend gibt DTO-Liste zurück -> wir mappen zu Film[])
   getTrendingMovies(timeWindow: 'day' | 'week' = 'week'): Observable<Film[]> {
     return this.http.get<any[]>(`${this.apiUrl}/trending/${timeWindow}`).pipe(
-      map(movies =>
-        (movies ?? []).map(m => ({
-          id: m.id,
-          title: m.title ?? '',
-          overview: m.overview ?? '',
-          popularity: m.popularity ?? 0,
-
-          // ✅ aus FULL poster URL den TMDB path machen (robust)
-          poster_path: m.poster
-            ? new URL(m.poster).pathname.replace(/^\/t\/p\/w\d+/, '')
-            : '',
-
-          release_date: m.releaseDate ?? '',
-          vote_average: m.voteAverage ?? 0,
-          vote_count: m.voteCount ?? 0,
-
-          adult: false,
-          backdrop_path: '',
-          genre_ids: [],
-          original_language: '',
-          original_title: m.title ?? '',
-          video: false
-        }))
-      )
+      map((movies) => (movies ?? []).map((movie) => this.cacheMovie(this.normalizeMovie(movie))))
     );
   }
 
+  getMovieById(id: number): Observable<Film> {
+    return this.http.get<Film>(`${this.apiUrl}/${id}`).pipe(
+      map((movie) => this.cacheMovie(this.normalizeMovie(movie)))
+    );
+  }
+
+  getCachedMovie(id: number): Film | undefined {
+    return this.movieCache.get(id);
+  }
+
+  private cacheMovie(movie: Film): Film {
+    this.movieCache.set(movie.id, movie);
+    return movie;
+  }
+
+  private normalizeMovie(movie: Partial<Film> & Record<string, any>): Film {
+    return {
+      adult: movie.adult ?? false,
+      backdrop_path: this.extractImagePath(movie.backdrop_path ?? movie['backdrop']),
+      genre_ids: movie.genre_ids ?? [],
+      genres: movie.genres ?? [],
+      id: movie.id ?? 0,
+      original_language: movie.original_language ?? movie['originalLanguage'] ?? '',
+      original_title: movie.original_title ?? movie['originalTitle'] ?? movie.title ?? '',
+      overview: movie.overview ?? '',
+      popularity: movie.popularity ?? 0,
+      poster_path: this.extractImagePath(movie.poster_path ?? movie['poster']),
+      release_date: movie.release_date ?? movie['releaseDate'] ?? '',
+      runtime: movie.runtime,
+      tagline: movie.tagline ?? '',
+      title: movie.title ?? '',
+      video: movie.video ?? false,
+      vote_average: movie.vote_average ?? movie['voteAverage'] ?? 0,
+      vote_count: movie.vote_count ?? movie['voteCount'] ?? 0
+    };
+  }
+
+  private extractImagePath(value?: string | null): string {
+    if (!value) {
+      return '';
+    }
+
+    if (value.startsWith('/')) {
+      return value;
+    }
+
+    try {
+      return new URL(value).pathname.replace(/^\/t\/p\/w\d+/, '');
+    } catch {
+      return '';
+    }
+  }
 }
