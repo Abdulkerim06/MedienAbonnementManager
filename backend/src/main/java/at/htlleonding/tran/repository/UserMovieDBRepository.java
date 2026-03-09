@@ -29,14 +29,6 @@ public class UserMovieDBRepository implements PanacheRepository<UserMovieDB> {
     ProviderRepository providerRepo;
 
     @Transactional
-    public void save(UserMovieDB userMovieDB) {
-        if (userMovieDB.getId() != null) {
-            throw new IllegalArgumentException(String.format("User with this Id Already exists", userMovieDB.getId()));
-        }
-        this.em.persist(userMovieDB);
-    }
-
-    @Transactional
     public void updateSubscriptions(UUID userId, List<SubscriptionUpdateDTO> updates) {
 
         UserMovieDB user = em.find(UserMovieDB.class, userId);
@@ -80,11 +72,6 @@ public class UserMovieDBRepository implements PanacheRepository<UserMovieDB> {
         existing.values().forEach(user.getSubscriptions()::remove);
     }
 
-    public UserMovieDB findById(String id) {
-        return this.em.find(UserMovieDB.class, id);
-    }
-
-
     /**
      * Sucht einen User anhand seiner UUID.
      * Gibt Optional zurück, falls User nicht existiert.
@@ -94,38 +81,10 @@ public class UserMovieDBRepository implements PanacheRepository<UserMovieDB> {
         return java.util.Optional.ofNullable(user);
     }
 
-
-    public Set<UserProviderSubscription> findProviderSupscriptionByUser(UUID userId) {
-        UserMovieDB user = em.find(UserMovieDB.class, userId);
-        if (user == null) {
-            throw new EntityNotFoundException("User not found: " + userId);
-        }
-        return user.getSubscriptions();
-    }
-
-    public Set<Provider> findProvidersByUser(UUID userId) {
-        return em.createQuery("""
-        select s.provider
-        from UserProviderSubscription s
-        where s.user.id = :userId
-    """, Provider.class)
-                .setParameter("userId", userId)
-                .getResultStream()
-                .collect(Collectors.toSet());
-    }
-
-    public Set<Long> findProviderIdsByUser(UUID userId) {
-        return em.createQuery("""
-        select s.provider.id
-        from UserProviderSubscription s
-        where s.user.id = :userId
-        """, Long.class)
-                .setParameter("userId", userId)
-                .getResultStream()
-                .collect(Collectors.toSet());
-    }
-
-    // Neue Methode: Gibt ALLE Provider zurück mit Flag ob User sie hat
+    /**
+     * Gibt ALLE Provider mit Flag zurück, ob der User sie besitzt.
+     * Ideal für Frontend: Ein Request, Filter im Frontend.
+     */
     public List<ProviderWithOwnership> getProvidersWithOwnership(UUID userId) {
         return em.createQuery("""
             SELECT new at.htlleonding.tran.dto.ProviderWithOwnership(
@@ -136,7 +95,7 @@ public class UserMovieDBRepository implements PanacheRepository<UserMovieDB> {
                 CASE WHEN s.id IS NOT NULL THEN true ELSE false END
             )
             FROM Provider p
-            LEFT JOIN UserProviderSubscription s 
+            LEFT JOIN UserProviderSubscription s
                 ON s.provider.id = p.id AND s.user.id = :userId
             ORDER BY p.providerName
         """, ProviderWithOwnership.class)
@@ -144,20 +103,10 @@ public class UserMovieDBRepository implements PanacheRepository<UserMovieDB> {
                 .getResultList();
     }
 
-    // Alternative: Nur Provider die der User HAT
-    public List<Provider> getUserOwnedProviders(UUID userId) {
-        return em.createQuery("""
-            SELECT p
-            FROM Provider p
-            JOIN UserProviderSubscription s ON s.provider.id = p.id
-            WHERE s.user.id = :userId
-            ORDER BY p.providerName
-        """, Provider.class)
-                .setParameter("userId", userId)
-                .getResultList();
-    }
-
-    // Für Movie-Provider-Filterung
+    /**
+     * Gibt die TMDB Provider IDs zurück, die der User abonniert hat.
+     * Wird für Movie-Provider-Filterung verwendet.
+     */
     public Set<Long> getUserProviderTmdbIds(UUID userId) {
         return em.createQuery("""
             SELECT p.tmdbProviderId
