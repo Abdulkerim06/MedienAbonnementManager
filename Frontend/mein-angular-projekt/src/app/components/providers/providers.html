@@ -1,50 +1,128 @@
-<div class="container mx-auto px-6 py-10 text-white">
+<section class="mx-auto max-w-7xl px-6 py-10 text-white">
+  <div class="rounded-3xl border border-white/10 bg-gray-900/95 shadow-2xl">
+    <div class="border-b border-white/10 px-6 py-8 md:px-8">
+      <p class="text-sm uppercase tracking-[0.3em] text-cyan-300">Abos</p>
+      <div class="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 class="text-3xl font-black tracking-tight text-white md:text-4xl">Meine Abos</h1>
+          <p class="mt-2 max-w-2xl text-gray-300">
+            Hier siehst und bearbeitest du die beim User gespeicherten Streaming-Provider.
+          </p>
+          <p class="mt-3 text-sm text-cyan-200">Gespeichert: {{ ownedProvidersCount }} Provider</p>
+        </div>
 
-  <h1 class="text-3xl font-bold mb-8">Meine Abonnements</h1>
-
-  <!-- Add Provider -->
-  <div class="bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-lg mb-10 border border-gray-700">
-    <h2 class="text-xl font-semibold mb-4">Abo hinzufügen</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <input
-        type="text"
-        placeholder="Provider (z. B. Netflix)"
-        [(ngModel)]="newProviderName"
-        class="bg-gray-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-400"
-      />
-
-      <input
-        type="date"
-        [(ngModel)]="newEndDate"
-        class="bg-gray-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-400"
-      />
-
-      <button
-        (click)="addProvider()"
-        class="bg-cyan-500 hover:bg-cyan-600 transition-colors duration-300 rounded-md font-semibold px-4 py-2"
-      >
-        Hinzufügen
-      </button>
+        <button
+          type="button"
+          (click)="saveSubscriptions()"
+          [disabled]="isSaving || isLoading"
+          class="inline-flex items-center justify-center rounded-full bg-cyan-400 px-5 py-3 font-semibold text-gray-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {{ isSaving ? 'Speichert...' : 'Abos speichern' }}
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- Provider List -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div
-      *ngFor="let provider of providers"
-      class="bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-700
-             hover:shadow-cyan-500/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-    >
-      <h3 class="text-xl font-semibold mb-2">{{ provider.name }}</h3>
+    <div class="grid gap-4 border-b border-white/10 px-6 py-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-8">
+      <label class="block">
+        <span class="mb-2 block text-sm text-gray-400">Provider suchen</span>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Netflix, Disney+, Prime Video ..."
+          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-gray-500 focus:border-cyan-400 focus:outline-none"
+        />
+      </label>
 
-      <p class="text-gray-300">
-        Läuft bis:
-        <span class="font-bold text-cyan-400">
-          {{ provider.endDate | date:'dd.MM.yyyy' }}
-        </span>
-      </p>
+      <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-200">
+        <input
+          type="checkbox"
+          [(ngModel)]="showOnlyOwned"
+          class="h-4 w-4 rounded border-white/20 bg-gray-800 text-cyan-400 focus:ring-cyan-400"
+        />
+        Nur gespeicherte Abos
+      </label>
     </div>
-  </div>
 
-</div>
+    @if (errorMessage) {
+      <div class="mx-6 mt-6 rounded-2xl border border-red-500/30 bg-red-900/30 px-5 py-4 text-red-100 md:mx-8">
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (successMessage) {
+      <div class="mx-6 mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-900/30 px-5 py-4 text-emerald-100 md:mx-8">
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (isLoading) {
+      <div class="px-6 py-16 text-center text-gray-300 md:px-8">Provider werden geladen...</div>
+    } @else if (!visibleProviders.length) {
+      <div class="px-6 py-16 text-center text-gray-300 md:px-8">Keine gespeicherten Provider fuer die aktuelle Auswahl gefunden.</div>
+    } @else {
+      <div class="grid gap-5 px-6 py-6 md:grid-cols-2 md:px-8 xl:grid-cols-3">
+        @for (provider of visibleProviders; track provider.tmdbProviderId) {
+          <article
+            class="rounded-3xl border px-5 py-5 transition"
+            [ngClass]="provider.ownedByUser ? 'border-cyan-400/40 bg-cyan-500/10' : 'border-white/10 bg-white/5'"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white/10">
+                  @if (providerLogo(provider); as logoUrl) {
+                    <img [src]="logoUrl" [alt]="provider.providerName" class="h-full w-full object-contain p-2" />
+                  } @else {
+                    <span class="text-lg font-bold text-cyan-200">{{ provider.providerName.charAt(0) }}</span>
+                  }
+                </div>
+
+                <div>
+                  <h2 class="text-lg font-semibold text-white">{{ provider.providerName }}</h2>
+                  <p class="mt-1 text-sm text-gray-400">
+                    {{ provider.ownedByUser ? 'Aktiv in deinem Profil' : 'Noch nicht abonniert' }}
+                  </p>
+                </div>
+              </div>
+
+              <label class="inline-flex items-center gap-2 text-sm text-gray-200">
+                <input
+                  type="checkbox"
+                  [ngModel]="provider.ownedByUser"
+                  (ngModelChange)="toggleOwned(provider, $event)"
+                  class="h-4 w-4 rounded border-white/20 bg-gray-800 text-cyan-400 focus:ring-cyan-400"
+                />
+                Aktiv
+              </label>
+            </div>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-2">
+              <label class="block">
+                <span class="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500">Abrechnungszyklus</span>
+                <select
+                  [(ngModel)]="provider.billingCycle"
+                  [disabled]="!provider.ownedByUser"
+                  class="w-full rounded-2xl border border-white/10 bg-gray-950/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option [ngValue]="null">Bitte waehlen</option>
+                  @for (cycle of billingCycles; track cycle) {
+                    <option [ngValue]="cycle">{{ billingCycleLabel(cycle) }}</option>
+                  }
+                </select>
+              </label>
+
+              <label class="block">
+                <span class="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500">Letzte Abbuchung</span>
+                <input
+                  type="date"
+                  [(ngModel)]="provider.lastBillingDate"
+                  [disabled]="!provider.ownedByUser"
+                  class="w-full rounded-2xl border border-white/10 bg-gray-950/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </label>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+</section>

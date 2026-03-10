@@ -10,7 +10,7 @@ import java.util.Set;
 public class Provider {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long Id;
+    private Long id;
 
     @Column(name = "tmdb_provider_id", nullable = false, unique = true)
     private Long tmdbProviderId;
@@ -19,7 +19,7 @@ public class Provider {
     private String providerName;
 
     @Column(name = "logo_path")
-    private String LogoPath;
+    private String logoPath;
 
     @OneToMany(mappedBy = "provider")
     @JsonIgnoreProperties
@@ -29,11 +29,11 @@ public class Provider {
     private Set<UserProviderSubscription> subscriptions;
 
     public Long getId() {
-        return Id;
+        return id;
     }
 
     public void setId(Long id) {
-        Id = id;
+        this.id = id;
     }
 
     public Long getTmdbProviderId() {
@@ -53,11 +53,11 @@ public class Provider {
     }
 
     public String getLogoPath() {
-        return LogoPath;
+        return logoPath;
     }
 
     public void setLogoPath(String logoPath) {
-        LogoPath = logoPath;
+        this.logoPath = logoPath;
     }
 
     public List<CountryPriority> getCountryPriorityList() {

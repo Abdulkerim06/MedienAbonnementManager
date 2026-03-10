@@ -28,4 +28,22 @@ export class KeycloakOperationService {
   getUserProfile(): Promise<Keycloak.KeycloakProfile> {
     return this.keycloak.loadUserProfile();
   }
+
+  async getToken(minValidity = 30): Promise<string | null> {
+    if (!this.keycloak.authenticated) {
+      return null;
+    }
+
+    try {
+      await this.keycloak.updateToken(minValidity);
+    } catch {
+      return this.keycloak.token ?? null;
+    }
+
+    return this.keycloak.token ?? null;
+  }
+
+  hasRealmRole(role: string): boolean {
+    return this.keycloak.hasRealmRole(role);
+  }
 }

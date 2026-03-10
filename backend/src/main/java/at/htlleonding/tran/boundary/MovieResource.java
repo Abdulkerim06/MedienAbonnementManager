@@ -47,6 +47,13 @@ public class MovieResource {
 
     @PermitAll
     @GET
+    @Path("/{id:\\d+}")
+    public Response getMovieByLegacyIdRoute(@PathParam("id") int movieId) {
+        return getMovieById(movieId);
+    }
+
+    @PermitAll
+    @GET
     @Path("/name/{name}")
     public Response getMovieByName(
             @PathParam("name") String movieName,
@@ -126,7 +133,7 @@ public class MovieResource {
     // Endpoint für angemeldete User
     @GET
     @Path("/{id}/providers/for-user")
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     public Response getProvidersForCurrentUser(
             @PathParam("id") Long movieId,
             @QueryParam("country") @DefaultValue("DE") String countryCode
@@ -149,7 +156,7 @@ public class MovieResource {
     // Alternativ: Mit expliziter User-ID (für Admin-Zwecke)
     @GET
     @Path("/{id}/providers/user/{userId}")
-    @RolesAllowed({"user", "admin"})
+    @RolesAllowed({"user", "medien-abo-users-role", "admin"})
     public Response getProvidersForSpecificUser(
             @PathParam("id") Long movieId,
             @PathParam("userId") UUID userId,

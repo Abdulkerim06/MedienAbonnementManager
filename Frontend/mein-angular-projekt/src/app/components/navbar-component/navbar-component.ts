@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../auth/auth-service';
 
 @Component({
@@ -12,4 +12,14 @@ import { AuthService } from '../../auth/auth-service';
 })
 export class NavbarComponent {
   protected readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  protected async openProviders(): Promise<void> {
+    if (!this.authService.isLoggedIn()) {
+      await this.authService.login('/providers');
+      return;
+    }
+
+    await this.router.navigate(['/providers']);
+  }
 }

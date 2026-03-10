@@ -29,7 +29,7 @@ export class MovieService {
   }
 
   getMovieById(id: number): Observable<Film> {
-    return this.http.get<Film>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<Film>(`${this.apiUrl}/id/${id}`).pipe(
       map((movie) => this.cacheMovie(this.normalizeMovie(movie)))
     );
   }
@@ -47,16 +47,23 @@ export class MovieService {
     return {
       adult: movie.adult ?? false,
       backdrop_path: this.extractImagePath(movie.backdrop_path ?? movie['backdrop']),
+      budget: movie.budget ?? 0,
       genre_ids: movie.genre_ids ?? [],
       genres: movie.genres ?? [],
+      homepage: movie.homepage ?? '',
       id: movie.id ?? 0,
       original_language: movie.original_language ?? movie['originalLanguage'] ?? '',
       original_title: movie.original_title ?? movie['originalTitle'] ?? movie.title ?? '',
       overview: movie.overview ?? '',
       popularity: movie.popularity ?? 0,
       poster_path: this.extractImagePath(movie.poster_path ?? movie['poster']),
+      production_companies: movie.production_companies ?? [],
+      production_countries: movie.production_countries ?? [],
       release_date: movie.release_date ?? movie['releaseDate'] ?? '',
+      revenue: movie.revenue ?? 0,
       runtime: movie.runtime,
+      spoken_languages: movie.spoken_languages ?? [],
+      status: movie.status ?? '',
       tagline: movie.tagline ?? '',
       title: movie.title ?? '',
       video: movie.video ?? false,

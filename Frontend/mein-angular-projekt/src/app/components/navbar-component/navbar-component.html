@@ -5,11 +5,16 @@
     </a>
     <ul class="hidden md:flex items-center space-x-6">
       <li><a routerLink="/movies" routerLinkActive="text-cyan-400" [routerLinkActiveOptions]="{ exact: true }" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Filme</a></li>
-      <li><a routerLink="/providers" routerLinkActive="text-cyan-400" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Abos</a></li>
+      <li>
+        <button
+          type="button"
+          (click)="openProviders()"
+          class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300"
+        >
+          Abos
+        </button>
+      </li>
       <li><a routerLink="/about" routerLinkActive="text-cyan-400" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Ueber uns</a></li>
-      @if (authService.isLoggedIn()) {
-        <li><a routerLink="/favorites" routerLinkActive="text-cyan-400" class="cursor-pointer py-2 px-3 rounded-md hover:bg-gray-700 transition-colors duration-300">Meine Abos</a></li>
-      }
     </ul>
     <div class="auth-section flex items-center space-x-4">
       @if (authService.isLoggedIn()) {

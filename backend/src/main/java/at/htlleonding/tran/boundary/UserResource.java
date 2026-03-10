@@ -38,7 +38,7 @@ public class UserResource {
     JsonWebToken jwt;
 
     @GET
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     @Produces(MediaType.TEXT_PLAIN)
     @Path("test")
     public String hello() {
@@ -51,7 +51,7 @@ public class UserResource {
      */
     @GET
     @Path("/me")
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     public Response getCurrentUser() {
         UserMovieDB user = userService.getCurrentUser();
         return Response.ok(user).build();
@@ -69,7 +69,7 @@ public class UserResource {
      */
     @GET
     @Path("/me/providers")
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     @Produces(MediaType.APPLICATION_JSON)
     public Response getProvidersWithOwnership() {
         UserMovieDB user = userService.getCurrentUser();
@@ -83,14 +83,14 @@ public class UserResource {
      */
     @PUT
     @Path("/me/subscriptions")
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateSubscriptions(List<SubscriptionUpdateDTO> updates) {
         try {
             UserMovieDB user = userService.getCurrentUser();
             userRepo.updateSubscriptions(user.getId(), updates);
-            return Response.ok(user).build();
+            return Response.noContent().build();
         } catch (Exception ex) {
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
@@ -105,7 +105,7 @@ public class UserResource {
      */
     @POST
     @Path("/me/history")
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     @Transactional
     public Response addToHistory(AddHistoryDTO dto) {
         UserMovieDB user = userService.getCurrentUser();
@@ -122,7 +122,7 @@ public class UserResource {
      */
     @GET
     @Path("/me/history")
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     public Response getHistory(@QueryParam("limit") Integer limit) {
         UserMovieDB user = userService.getCurrentUser();
         List<History> history;
@@ -145,7 +145,7 @@ public class UserResource {
      */
     @DELETE
     @Path("/me/history/{id}")
-    @RolesAllowed("user")
+    @RolesAllowed({"user", "medien-abo-users-role"})
     @Transactional
     public Response deleteFromHistory(@PathParam("id") Long historyId) {
         UserMovieDB user = userService.getCurrentUser();

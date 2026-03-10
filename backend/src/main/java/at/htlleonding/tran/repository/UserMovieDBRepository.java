@@ -92,7 +92,9 @@ public class UserMovieDBRepository implements PanacheRepository<UserMovieDB> {
                 p.tmdbProviderId,
                 p.providerName,
                 p.logoPath,
-                CASE WHEN s.id IS NOT NULL THEN true ELSE false END
+                CASE WHEN s.id IS NOT NULL THEN true ELSE false END,
+                s.billingCycle,
+                s.lastBillingDate
             )
             FROM Provider p
             LEFT JOIN UserProviderSubscription s
