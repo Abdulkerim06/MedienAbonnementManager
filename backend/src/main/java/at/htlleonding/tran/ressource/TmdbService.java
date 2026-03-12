@@ -251,7 +251,7 @@ public class TmdbService {
                 String logo = ("https://image.tmdb.org/t/p/w92" + api.logo_path());
 
                 ProviderApi providerApi = new ProviderApi(
-                  api.id(),
+                  api.provider_id(),
                   api.provider_name(),
                   logo,
                         api.display_priorities()
