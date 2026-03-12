@@ -1,128 +1,272 @@
-<section class="mx-auto max-w-7xl px-6 py-10 text-white">
-  <div class="rounded-3xl border border-white/10 bg-gray-900/95 shadow-2xl">
-    <div class="border-b border-white/10 px-6 py-8 md:px-8">
-      <p class="text-sm uppercase tracking-[0.3em] text-cyan-300">Abos</p>
-      <div class="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+<section class="subscriptions-shell">
+  <div class="subscriptions-backdrop" aria-hidden="true"></div>
+
+  <header class="hero-panel">
+    <div class="hero-copy">
+      <p class="eyebrow">Abo Verwaltung</p>
+      <h1 class="hero-title">Meine Streaming-Abos</h1>
+      <p class="hero-text">
+        Verwalte Provider, Preise und naechste Abbuchungen in einer ruhigen, klaren Dashboard-Oberflaeche.
+      </p>
+    </div>
+  </header>
+
+  <div class="top-grid">
+    <section class="dashboard-card section-card">
+      <div class="section-header">
         <div>
-          <h1 class="text-3xl font-black tracking-tight text-white md:text-4xl">Meine Abos</h1>
-          <p class="mt-2 max-w-2xl text-gray-300">
-            Hier siehst und bearbeitest du die beim User gespeicherten Streaming-Provider.
-          </p>
-          <p class="mt-3 text-sm text-cyan-200">Gespeichert: {{ ownedProvidersCount }} Provider</p>
+          <p class="section-kicker">Neu</p>
+          <h2 class="section-title">Neues Abo hinzufuegen</h2>
+        </div>
+        <p class="section-meta">Provider werden aus dem Backend geladen. Preise bleiben lokal gespeichert.</p>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field form-field--wide">
+          <label class="field-label" for="provider-search">
+            Provider suchen <span class="field-required">*</span>
+          </label>
+          <input
+            id="provider-search"
+            type="text"
+            [(ngModel)]="addSearchTerm"
+            placeholder="z. B. Netflix, WOW, Disney+"
+            class="app-input"
+          />
+          <p class="field-hint">Filtert die Liste der noch nicht hinzugefuegten Provider.</p>
         </div>
 
-        <button
-          type="button"
-          (click)="saveSubscriptions()"
-          [disabled]="isSaving || isLoading"
-          class="inline-flex items-center justify-center rounded-full bg-cyan-400 px-5 py-3 font-semibold text-gray-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {{ isSaving ? 'Speichert...' : 'Abos speichern' }}
-        </button>
+        <div class="form-field form-field--wide">
+          <label class="field-label" for="provider-select">
+            Provider auswaehlen <span class="field-required">*</span>
+          </label>
+          <select
+            id="provider-select"
+            [(ngModel)]="draft.tmdbProviderId"
+            class="app-input app-select"
+          >
+            <option [ngValue]="null">Bitte einen Provider waehlen</option>
+            @for (provider of availableProviders; track provider.tmdbProviderId) {
+              <option [ngValue]="provider.tmdbProviderId">{{ provider.providerName }}</option>
+            }
+          </select>
+          <p class="field-hint">Nur noch nicht aktive Provider werden hier angezeigt.</p>
+        </div>
+
+        <div class="form-field">
+          <label class="field-label" for="billing-cycle">
+            Abrechnungszyklus <span class="field-required">*</span>
+          </label>
+          <select
+            id="billing-cycle"
+            [(ngModel)]="draft.billingCycle"
+            class="app-input app-select"
+          >
+            @for (cycle of billingCycles; track cycle) {
+              <option [ngValue]="cycle">{{ billingCycleLabel(cycle) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label class="field-label" for="billing-date">
+            Naechste Abbuchung / Ablauf <span class="field-required">*</span>
+          </label>
+          <input
+            id="billing-date"
+            type="date"
+            [(ngModel)]="draft.nextBillingDate"
+            class="app-input"
+          />
+        </div>
+
+        <div class="form-field">
+          <label class="field-label" for="price-input">Preis</label>
+          <input
+            id="price-input"
+            type="number"
+            min="0"
+            step="0.01"
+            [ngModel]="draft.price"
+            (ngModelChange)="draft.price = $event === '' ? null : $event"
+            placeholder="z. B. 12.99"
+            class="app-input"
+          />
+          <p class="field-hint">Optional. Wird aktuell lokal im Browser gespeichert.</p>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            (click)="addSubscription()"
+            [disabled]="isLoading || !availableProviders.length"
+            class="primary-action primary-action--full"
+          >
+            {{ isSaving ? 'Speichert...' : 'Abo speichern' }}
+          </button>
+        </div>
       </div>
+    </section>
+
+    <aside class="stats-panel">
+      <article class="stat-card">
+        <p class="stat-label">Aktive Abos</p>
+        <p class="stat-value">{{ activeSubscriptionsCount }}</p>
+        <p class="stat-meta">Derzeit in deinem Profil gespeichert</p>
+      </article>
+
+      <article class="stat-card">
+        <p class="stat-label">Verfuegbar</p>
+        <p class="stat-value">{{ availableProviders.length }}</p>
+        <p class="stat-meta">Weitere Provider zum Hinzufuegen</p>
+      </article>
+
+      <article class="stat-card">
+        <p class="stat-label">Mit Preis gepflegt</p>
+        <p class="stat-value">{{ subscriptionsWithPriceCount }}</p>
+        <p class="stat-meta">Abos mit hinterlegtem Preis fuer die Uebersicht</p>
+      </article>
+    </aside>
+  </div>
+
+  <section class="dashboard-card filter-card">
+    <div class="section-header section-header--compact">
+      <div>
+        <p class="section-kicker">Suche</p>
+        <h2 class="section-title">Aktive Abos filtern</h2>
+      </div>
+      <p class="section-meta">Aenderungen an bestehenden Abos werden direkt uebernommen.</p>
     </div>
 
-    <div class="grid gap-4 border-b border-white/10 px-6 py-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-8">
-      <label class="block">
-        <span class="mb-2 block text-sm text-gray-400">Provider suchen</span>
+    <div class="filter-toolbar">
+      <label class="search-field" for="subscription-search">
+        <span class="search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m1.6-5.15a6.75 6.75 0 1 1-13.5 0 6.75 6.75 0 0 1 13.5 0Z" />
+          </svg>
+        </span>
+        <span class="sr-only">Aktive Abos durchsuchen</span>
         <input
+          id="subscription-search"
           type="text"
           [(ngModel)]="searchTerm"
-          placeholder="Netflix, Disney+, Prime Video ..."
-          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-gray-500 focus:border-cyan-400 focus:outline-none"
+          placeholder="Nach Providername suchen"
+          class="search-input"
         />
       </label>
 
-      <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-200">
-        <input
-          type="checkbox"
-          [(ngModel)]="showOnlyOwned"
-          class="h-4 w-4 rounded border-white/20 bg-gray-800 text-cyan-400 focus:ring-cyan-400"
-        />
-        Nur gespeicherte Abos
-      </label>
+      <div class="filter-pills" aria-hidden="true">
+        <span class="filter-pill">Name</span>
+        <span class="filter-pill">Preis</span>
+        <span class="filter-pill">Naechste Abbuchung</span>
+      </div>
     </div>
+  </section>
 
-    @if (errorMessage) {
-      <div class="mx-6 mt-6 rounded-2xl border border-red-500/30 bg-red-900/30 px-5 py-4 text-red-100 md:mx-8">
-        {{ errorMessage }}
-      </div>
-    }
+  @if (errorMessage) {
+    <div class="feedback-banner feedback-banner--error" role="alert" aria-live="assertive">
+      {{ errorMessage }}
+    </div>
+  }
 
-    @if (successMessage) {
-      <div class="mx-6 mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-900/30 px-5 py-4 text-emerald-100 md:mx-8">
-        {{ successMessage }}
-      </div>
-    }
+  @if (successMessage) {
+    <div class="feedback-banner feedback-banner--success" role="status" aria-live="polite">
+      {{ successMessage }}
+    </div>
+  }
 
-    @if (isLoading) {
-      <div class="px-6 py-16 text-center text-gray-300 md:px-8">Provider werden geladen...</div>
-    } @else if (!visibleProviders.length) {
-      <div class="px-6 py-16 text-center text-gray-300 md:px-8">Keine gespeicherten Provider fuer die aktuelle Auswahl gefunden.</div>
-    } @else {
-      <div class="grid gap-5 px-6 py-6 md:grid-cols-2 md:px-8 xl:grid-cols-3">
-        @for (provider of visibleProviders; track provider.tmdbProviderId) {
-          <article
-            class="rounded-3xl border px-5 py-5 transition"
-            [ngClass]="provider.ownedByUser ? 'border-cyan-400/40 bg-cyan-500/10' : 'border-white/10 bg-white/5'"
-          >
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex items-center gap-4">
-                <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white/10">
-                  @if (providerLogo(provider); as logoUrl) {
-                    <img [src]="logoUrl" [alt]="provider.providerName" class="h-full w-full object-contain p-2" />
-                  } @else {
-                    <span class="text-lg font-bold text-cyan-200">{{ provider.providerName.charAt(0) }}</span>
-                  }
-                </div>
-
-                <div>
-                  <h2 class="text-lg font-semibold text-white">{{ provider.providerName }}</h2>
-                  <p class="mt-1 text-sm text-gray-400">
-                    {{ provider.ownedByUser ? 'Aktiv in deinem Profil' : 'Noch nicht abonniert' }}
-                  </p>
-                </div>
+  @if (isLoading) {
+    <section class="dashboard-card state-card state-card--loading" aria-live="polite">
+      <div class="state-dot"></div>
+      <p class="state-title">Provider werden geladen...</p>
+      <p class="state-text">Wir holen deine gespeicherten Abos und verfuegbaren Anbieter.</p>
+    </section>
+  } @else if (!activeSubscriptions.length) {
+    <section class="dashboard-card state-card">
+      <p class="state-title">Noch keine aktiven Abos vorhanden</p>
+      <p class="state-text">Fuege oben deinen ersten Provider hinzu, um die Verwaltung zu starten.</p>
+    </section>
+  } @else {
+    <section class="subscriptions-grid">
+      @for (provider of activeSubscriptions; track provider.tmdbProviderId) {
+        <article class="subscription-card">
+          <div class="subscription-top">
+            <div class="subscription-brand">
+              <div class="brand-logo">
+                @if (providerLogo(provider); as logoUrl) {
+                  <img [src]="logoUrl" [alt]="provider.providerName" class="h-full w-full object-contain p-2" />
+                } @else {
+                  <span class="brand-fallback">{{ provider.providerName.charAt(0) }}</span>
+                }
               </div>
 
-              <label class="inline-flex items-center gap-2 text-sm text-gray-200">
-                <input
-                  type="checkbox"
-                  [ngModel]="provider.ownedByUser"
-                  (ngModelChange)="toggleOwned(provider, $event)"
-                  class="h-4 w-4 rounded border-white/20 bg-gray-800 text-cyan-400 focus:ring-cyan-400"
-                />
-                Aktiv
-              </label>
+              <div>
+                <div class="subscription-heading">
+                  <h3 class="subscription-title">{{ provider.providerName }}</h3>
+                  <span class="status-badge">Aktiv</span>
+                </div>
+                <p class="subscription-meta">Naechste Abbuchung: {{ nextBillingDate(provider) | date:'dd.MM.yyyy' }}</p>
+              </div>
             </div>
 
-            <div class="mt-5 grid gap-4 md:grid-cols-2">
-              <label class="block">
-                <span class="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500">Abrechnungszyklus</span>
-                <select
-                  [(ngModel)]="provider.billingCycle"
-                  [disabled]="!provider.ownedByUser"
-                  class="w-full rounded-2xl border border-white/10 bg-gray-950/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option [ngValue]="null">Bitte waehlen</option>
-                  @for (cycle of billingCycles; track cycle) {
-                    <option [ngValue]="cycle">{{ billingCycleLabel(cycle) }}</option>
-                  }
-                </select>
-              </label>
+            <button
+              type="button"
+              (click)="removeSubscription(provider)"
+              class="danger-action"
+            >
+              Entfernen
+            </button>
+          </div>
 
-              <label class="block">
-                <span class="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500">Letzte Abbuchung</span>
-                <input
-                  type="date"
-                  [(ngModel)]="provider.lastBillingDate"
-                  [disabled]="!provider.ownedByUser"
-                  class="w-full rounded-2xl border border-white/10 bg-gray-950/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </label>
+          <div class="subscription-fields">
+            <div class="form-field">
+              <label class="field-label" [for]="'cycle-' + provider.tmdbProviderId">Abrechnungszyklus</label>
+              <select
+                [id]="'cycle-' + provider.tmdbProviderId"
+                [ngModel]="provider.billingCycle"
+                (ngModelChange)="updateBillingCycle(provider, $event)"
+                class="app-input app-select"
+              >
+                @for (cycle of billingCycles; track cycle) {
+                  <option [ngValue]="cycle">{{ billingCycleLabel(cycle) }}</option>
+                }
+              </select>
             </div>
-          </article>
-        }
-      </div>
-    }
-  </div>
+
+            <div class="form-field">
+              <label class="field-label" [for]="'date-' + provider.tmdbProviderId">Datum bearbeiten</label>
+              <input
+                [id]="'date-' + provider.tmdbProviderId"
+                type="date"
+                [ngModel]="nextBillingDate(provider)"
+                (ngModelChange)="updateNextBillingDate(provider, $event)"
+                class="app-input"
+              />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label" [for]="'price-' + provider.tmdbProviderId">Preis</label>
+              <input
+                [id]="'price-' + provider.tmdbProviderId"
+                type="number"
+                min="0"
+                step="0.01"
+                [ngModel]="provider.price"
+                (ngModelChange)="updatePrice(provider, $event)"
+                (blur)="persistSubscriptions('Abo wurde aktualisiert.')"
+                placeholder="Preis eintragen"
+                class="app-input"
+              />
+            </div>
+
+            <div class="price-highlight" aria-label="Aktueller Preis">
+              <p class="price-label">Aktueller Preis</p>
+              <p class="price-value">{{ formatPrice(provider.price) }}</p>
+              <p class="price-meta">Wird fuer die lokale Uebersicht hervorgehoben</p>
+            </div>
+          </div>
+        </article>
+      }
+    </section>
+  }
 </section>

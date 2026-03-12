@@ -8,4 +8,5 @@ export interface Provider {
   ownedByUser: boolean;
   billingCycle: BillingCycle | null;
   lastBillingDate: string | null;
+  price?: number | null;
 }

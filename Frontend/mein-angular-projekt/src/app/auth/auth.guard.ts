@@ -1,13 +1,7 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { AuthGuardData, createAuthGuard } from 'keycloak-angular';
-
-function buildRedirectUri(path: string): string {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return typeof window === 'undefined'
-    ? normalizedPath
-    : `${window.location.origin}/#${normalizedPath}`;
-}
+import { buildKeycloakRedirectUri, rememberPostAuthRedirect } from './auth-redirect';
 
 async function isAccessAllowed(
   route: ActivatedRouteSnapshot,
@@ -15,8 +9,9 @@ async function isAccessAllowed(
   authData: AuthGuardData
 ): Promise<boolean | UrlTree> {
   if (!authData.authenticated) {
+    rememberPostAuthRedirect(state.url);
     await authData.keycloak.login({
-      redirectUri: buildRedirectUri(state.url)
+      redirectUri: buildKeycloakRedirectUri()
     });
 
     return false;

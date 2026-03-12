@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Film } from '../../interfaces/film';
+import { MovieProvider } from '../../interfaces/movie-provider';
+import { MovieWatchOptions } from '../../interfaces/movie-watch-options';
 import { MovieService } from '../../services/movie-service';
 
 @Component({
@@ -15,8 +17,14 @@ import { MovieService } from '../../services/movie-service';
 })
 export class MovieDetailComponent implements OnInit {
   movie: Film | null = null;
+  providers: MovieProvider[] = [];
+  watchOptions: MovieWatchOptions | null = null;
   isLoading = true;
+  isLoadingProviders = false;
+  isLoadingWatchOptions = false;
   errorMessage = '';
+  providersErrorMessage = '';
+  watchOptionsErrorMessage = '';
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -57,6 +65,9 @@ export class MovieDetailComponent implements OnInit {
           this.cdr.markForCheck();
         }
       });
+
+    this.loadProviders(movieId);
+    this.loadWatchOptions(movieId);
   }
 
   protected get posterUrl(): string | null {
@@ -143,5 +154,67 @@ export class MovieDetailComponent implements OnInit {
       { label: 'Genres', value: this.genresText },
       { label: 'Produktionsfirmen', value: this.productionCompaniesText }
     ];
+  }
+
+  protected providerBadgeClass(provider: MovieProvider): string {
+    return provider.ownedByUser
+      ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100'
+      : 'border-white/10 bg-white/5 text-gray-200';
+  }
+
+  protected get watchLink(): string | null {
+    return this.watchOptions?.link ?? null;
+  }
+
+  protected get watchGroups() {
+    return this.watchOptions?.groups ?? [];
+  }
+
+  private loadProviders(movieId: number): void {
+    this.isLoadingProviders = true;
+    this.providersErrorMessage = '';
+    this.cdr.markForCheck();
+
+    this.movieService.getMovieProviders(movieId)
+      .pipe(finalize(() => {
+        this.isLoadingProviders = false;
+        this.cdr.markForCheck();
+      }))
+      .subscribe({
+        next: (providers) => {
+          this.providers = (providers ?? []).filter((provider) => provider.ownedByUser);
+          this.providersErrorMessage = '';
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.providers = [];
+          this.providersErrorMessage = 'Provider konnten nicht geladen werden.';
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private loadWatchOptions(movieId: number): void {
+    this.isLoadingWatchOptions = true;
+    this.watchOptionsErrorMessage = '';
+    this.cdr.markForCheck();
+
+    this.movieService.getMovieWatchOptions(movieId)
+      .pipe(finalize(() => {
+        this.isLoadingWatchOptions = false;
+        this.cdr.markForCheck();
+      }))
+      .subscribe({
+        next: (watchOptions) => {
+          this.watchOptions = watchOptions;
+          this.watchOptionsErrorMessage = '';
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.watchOptions = null;
+          this.watchOptionsErrorMessage = 'Allgemeine Provider konnten nicht geladen werden.';
+          this.cdr.markForCheck();
+        }
+      });
   }
 }

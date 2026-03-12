@@ -1,15 +1,21 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, catchError, from, map, switchMap } from 'rxjs';
 import { Film } from '../interfaces/film';
+import { MovieProvider } from '../interfaces/movie-provider';
 import { MovieResponse } from '../interfaces/movie-response';
+import { MovieWatchOptions, WatchProviderGroup, WatchProviderItem } from '../interfaces/movie-watch-options';
+import { KeycloakOperationService } from './keycloak.service';
 
 @Injectable({ providedIn: 'root' })
 export class MovieService {
   private apiUrl = 'http://localhost:8080/api/movies';
   private movieCache = new Map<number, Film>();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly keycloak: KeycloakOperationService
+  ) {}
 
   getMoviesByName(name: string, page: number = 1): Observable<MovieResponse> {
     return this.http.get<MovieResponse>(
@@ -31,6 +37,30 @@ export class MovieService {
   getMovieById(id: number): Observable<Film> {
     return this.http.get<Film>(`${this.apiUrl}/id/${id}`).pipe(
       map((movie) => this.cacheMovie(this.normalizeMovie(movie)))
+    );
+  }
+
+  getMovieProviders(id: number, country: string = 'AT'): Observable<MovieProvider[]> {
+    return from(this.createAuthHeaders()).pipe(
+      switchMap((headers) => {
+        const authenticated = headers.has('Authorization');
+        const userRoute = `${this.apiUrl}/${id}/providers/for-user?country=${country}`;
+        const publicRoute = `${this.apiUrl}/${id}/providers/filtered?country=${country}`;
+
+        if (!authenticated) {
+          return this.http.get<MovieProvider[]>(publicRoute);
+        }
+
+        return this.http.get<MovieProvider[]>(userRoute, { headers }).pipe(
+          catchError(() => this.http.get<MovieProvider[]>(publicRoute))
+        );
+      })
+    );
+  }
+
+  getMovieWatchOptions(id: number, country: string = 'AT'): Observable<MovieWatchOptions> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/providers`).pipe(
+      map((response) => this.normalizeWatchOptions(response, country))
     );
   }
 
@@ -86,5 +116,36 @@ export class MovieService {
     } catch {
       return '';
     }
+  }
+
+  private async createAuthHeaders(): Promise<HttpHeaders> {
+    const token = await this.keycloak.getToken();
+    return token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : new HttpHeaders();
+  }
+
+  private normalizeWatchOptions(response: any, country: string): MovieWatchOptions {
+    const countryResult = response?.results?.[country] ?? {};
+
+    const groups: WatchProviderGroup[] = [
+      { label: 'Streaming', providers: this.mapWatchProviders(countryResult?.flatrate) },
+      { label: 'Leihen', providers: this.mapWatchProviders(countryResult?.rent) },
+      { label: 'Kaufen', providers: this.mapWatchProviders(countryResult?.buy) }
+    ].filter((group) => group.providers.length > 0);
+
+    return {
+      countryCode: country,
+      link: countryResult?.link ?? null,
+      groups
+    };
+  }
+
+  private mapWatchProviders(items: any[] | undefined): WatchProviderItem[] {
+    return (items ?? []).map((item) => ({
+      providerId: item?.provider_id ?? 0,
+      providerName: item?.provider_name ?? '',
+      logoUrl: item?.logo_path ? `https://image.tmdb.org/t/p/w92${item.logo_path}` : ''
+    }));
   }
 }

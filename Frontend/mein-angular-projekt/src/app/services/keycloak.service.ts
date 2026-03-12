@@ -46,4 +46,8 @@ export class KeycloakOperationService {
   hasRealmRole(role: string): boolean {
     return this.keycloak.hasRealmRole(role);
   }
+
+  getSubject(): string | null {
+    return this.keycloak.tokenParsed?.sub ?? null;
+  }
 }
