@@ -91,6 +91,6 @@ GET /http://localhost:8080/api/debug
 
 ###
 
-GET //http://localhost:8080/api/providers/sync
+GET http://localhost:8080/api/providers
 
 
